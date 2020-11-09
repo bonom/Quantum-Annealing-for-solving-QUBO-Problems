@@ -1,1 +1,1 @@
-# Quantum-Annealing-for-solving-QUBO-Problems
+# Quantum Annealing for solving QUBO Problems
