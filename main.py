@@ -19,6 +19,15 @@ import networkx as nx
 import sys
 np.set_printoptions(threshold=sys.maxsize)
 
+def update(vector):
+    dim = len(vector)
+    i = 0
+    while(i < dim and vector[i] == 1):
+        vector[i] = -1
+        i += 1
+    if(i < dim):
+        vector[i] = 1
+
 def print_file(z):
     outF = open("Output.txt", "w")
     for line in z:
@@ -30,41 +39,29 @@ def make_decision(probability):
     return np.random.random() < probability
 
 
-def transpose(var):
-    return np.atleast_2d(var).T
-
 
 def function_f(Q, x):
     return ((np.atleast_2d(x).T).dot(Q)).dot(x)
 
-
-def all_vectors(my_list, vector, index, maxval):
-    if index == maxval:
-        my_list.append(vector)
-    else:
-        all_vectors(my_list, np.append(vector, -1), index + 1, maxval)
-        all_vectors(my_list, np.append(vector, 1), index + 1, maxval)
-    return my_list
-
-
-def minimization(matrix, __list__):
+def minimization(matrix):
     n, m = matrix.shape
-    minimum = None
-    s = 0
-    for vector in __list__:
-        s += 1
-        somma = 0
-        for i in range(n):
-            tmp = 0
-            for j in range(m):
-                print(f"-- Minimizzazione in corso... {int(((s+i+j)/(len(__list__)+n+m))*100)}%", end = "\r")
-                sys.stdout.write("\033[K")
-                tmp += matrix.item(j,i) * vector[j]
-            somma += vector[i] * tmp
-        if (minimum == None) or (abs(somma) < abs(minimum)):
-            minimum = somma
-            save = vector
-    return np.atleast_2d(save).T
+    N = 2**n
+    vector = np.empty([n])
+    for i in range(n):
+        vector[i] = -1
+    minimum = function_f(matrix,np.atleast_2d(vector).T)
+    min_vector = vector.copy()
+    i = 1
+    while (i < N):
+        print(f"Minimizzazione in corso...  {int((i/N)*100)}%", end = "\r")
+        update(vector)
+        e = function_f(matrix,np.atleast_2d(vector).T)
+        if(abs(e) < abs(minimum)):
+            min_vector = vector.copy()
+            minimum = e
+        i += 1
+    return np.atleast_2d(min_vector).T
+
 
 def g(P, pr):
     row, col = P.shape
@@ -92,20 +89,7 @@ def h(vect, pr):  # algorithm 4
     return vect
 
 
-def random_z(max):
-    vett = np.c_[np.ones(max)]
-    for i in range(max):
-        print(f"-- 'Minimizzazione' in corso... {(i/max)*100}%", end = "\r")
-        sys.stdout.write("\033[K")
-        if make_decision(0.5):
-            vett[i] = -vett[i]
-    return vett
-
-
 def QALS(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
-    print(f"Sto creando la lista di vettori per la minimizzazione...", end = ' ')
-    __list__ = all_vectors([], np.zeros(0), 0, n)
-    print(f"FATTO!\n")
     I = np.identity(n)
     P = I
     p = 1
@@ -116,8 +100,8 @@ def QALS(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
     #for i in range(k):
     #z_one = (np.transpose(P_one)).dot(random_z(n))
     #z_two = (np.transpose(P_one)).dot(random_z(n))
-    z_one = (np.transpose(P_one)).dot(minimization(Theta_one, __list__))
-    z_two = (np.transpose(P_two)).dot(minimization(Theta_two, __list__))
+    z_one = (np.transpose(P_one)).dot(minimization(Theta_one))
+    z_two = (np.transpose(P_two)).dot(minimization(Theta_two))
     f_one = function_f(Q, z_one)
     f_two = function_f(Q, z_two)
     if (f_one < f_two).all():
@@ -147,7 +131,7 @@ def QALS(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
         Theta_prime = (((np.transpose(P)).dot(Q_prime)).dot(P)).dot(A)
         #for i in range(k):
         #z_prime = (np.transpose(P)).dot(random_z(n))
-        z_prime = (np.transpose(P)).dot(minimization(Theta_prime, __list__))
+        z_prime = (np.transpose(P)).dot(minimization(Theta_prime))
         sys.stdout.write("\033[F")
         sys.stdout.write("\033[K")
         if make_decision(q):
@@ -218,7 +202,7 @@ for i in range(n):
     j = 0
 print(f"FATTO!\n--------------- Q matrice {Q.shape} ---------------\n{Q}")
 print(f"\nCreo A ...", end = ' ')
-#controllare se pari o dispari, perchè cambia
+
 if(n%8 == 0) and (rows * columns * 8 == n):
     A = d_wave.chimera_graph(rows, columns)
     matrix_A = (nx.adjacency_matrix(A)).todense()
