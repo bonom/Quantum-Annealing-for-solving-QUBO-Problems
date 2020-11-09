@@ -18,10 +18,6 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import sys
 np.set_printoptions(threshold=sys.maxsize)
-#import annealer
-
-def isPerfectSquare(x): 
-    return ((np.sqrt(x) - int(np.sqrt(x))) == 0) 
 
 def print_file(z):
     outF = open("Output.txt", "w")
