@@ -38,8 +38,6 @@ def print_file(z):
 def make_decision(probability):
     return np.random.random() < probability
 
-
-
 def function_f(Q, x):
     return ((np.atleast_2d(x).T).dot(Q)).dot(x)
 
@@ -170,54 +168,58 @@ def show_graph(adjacency_matrix, mylabels = None):
     nx.draw(gr, node_size=500, labels=mylabels, with_labels=True)
     plt.show()
 
-"""Dati """
-i_max = 1000
-q = 0.01
-p_delta = 0.1
-eta = 0.1
-lambda_zero = 1
-k = 20
-N_max = 100
-d_min = 100
-n = 8
+def main():
+    """Dati """
+    i_max = 1000
+    q = 0.01
+    p_delta = 0.1
+    eta = 0.1
+    lambda_zero = 1
+    k = 20
+    N_max = 100
+    d_min = 100
+    n = 8
 
-"""
-Solo per test
-"""
-rows = 1
-columns = 1
+    """
+    Solo per test
+    """
+    rows = 1
+    columns = 1
 
 
-"""MAIN"""
-print(f"Creo Q ...", end = ' ')
-j_max = 0
-j = 0
-Q = np.zeros((n,n))
-for i in range(n):
-    j_max += 1
-    while j < j_max:
-        Q[i][j] = np.random.randint(low = -10, high = 10)
-        Q[j][i] = Q[i][j]
-        j += 1
+    """MAIN"""
+    print(f"Creo Q ...", end = ' ')
+    j_max = 0
     j = 0
-print(f"FATTO!\n--------------- Q matrice {Q.shape} ---------------\n{Q}")
-print(f"\nCreo A ...", end = ' ')
+    Q = np.zeros((n,n))
+    for i in range(n):
+        j_max += 1
+        while j < j_max:
+            Q[i][j] = np.random.randint(low = -10, high = 10)
+            Q[j][i] = Q[i][j]
+            j += 1
+        j = 0
+    print(f"FATTO!\n--------------- Q matrice {Q.shape} ---------------\n{Q}")
+    print(f"\nCreo A ...", end = ' ')
 
-if(n%8 == 0) and (rows * columns * 8 == n):
-    A = d_wave.chimera_graph(rows, columns)
-    matrix_A = (nx.adjacency_matrix(A)).todense()
-else:
-    exit("Error",-1)
+    if(n%8 == 0) and (rows * columns * 8 == n):
+        A = d_wave.chimera_graph(rows, columns)
+        matrix_A = (nx.adjacency_matrix(A)).todense()
+    else:
+        exit("Error",-1)
 
-print(f"FATTO!\n--------------- A matrice {matrix_A.shape} ---------------\n{matrix_A}\n")
-if(input("Vuoi vedere il grafo di A (S/n)? ") in ["S", "s", "y", "Y"]):
-    show_graph(matrix_A)
-    #d_wave.print_graph(A)
+    print(f"FATTO!\n--------------- A matrice {matrix_A.shape} ---------------\n{matrix_A}\n")
+    if(input("Vuoi vedere il grafo di A (S/n)? ") in ["S", "s", "y", "Y"]):
+        show_graph(matrix_A)
+        #d_wave.print_graph(A)
 
-print("\n")
-start_time = time.time()
+    print("\n")
+    start_time = time.time()
 
-QALS(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, matrix_A, Q)
+    QALS(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, matrix_A, Q)
 
-#print_file(z)
-print("\n------------ Impiegati %s secondi ------------\n\n" %(time.time() - start_time))
+    #print_file(z)
+    print("\n------------ Impiegati %s secondi ------------\n\n" %(time.time() - start_time))
+
+if __name__ == "__main__":
+    main()
