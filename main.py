@@ -243,7 +243,7 @@ def QALS_gless(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
     i = 0
     lam = lambda_zero
     while True:
-        print(f"-- Ciclo numero {i + 1}")  # , end = "\r")
+        print(f"-- Ciclo numero {i + 1} con e = {e} e d = {d}")  # , end = "\r")
         Q_prime = np.add(Q, (np.multiply(lam, S)))
         if (i % n == 0):
             p = p - ((p - p_delta)*eta)
@@ -277,9 +277,12 @@ def QALS_gless(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
         else:
             e = e + 1
         i = i + 1
-        if ((i == i_max) or ((e + d >= N_max) and (d < d_min))):
+        if (i == i_max):
+            print(f"-- Raggiunto i max -- \n-- Questo è lo z finora ottenuto --\n{z_star}")
             break
-    print(f"\n--- Uscito al ciclo {i} ---\n{z_star}")
+        elif ((e + d >= N_max) and (d < d_min)):
+            print(f"-- Raggiunta la convergenza al ciclo {i} --\n-- Questo è lo z ottenuto alla convergenza --\n{z_star}")
+            break
     return z_star
 
 
@@ -302,13 +305,13 @@ def main():
     k = 20
     N_max = 100
     d_min = 100
-    n = 16
+    n = 8
 
     """
     Solo per test
     """
     rows = 1
-    columns = 2
+    columns = 1
 
     """MAIN"""
     print(f"Creo Q ...", end=' ')
@@ -355,12 +358,12 @@ def main():
     #
     #QALS(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, matrix_A, Q)
     #
-    #print("\n------------ Impiegati %s secondi con la g normale ------------\n\n" %(time.time() - start_time))
+    #print("\n------------ Impiegati %s secondi con la funzione g non modificata ------------\n\n" %(time.time() - start_time))
     start_time = time.time()
     QALS_gless(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, matrix_A, Q)
 
     # print_file(z)
-    print("\n------------ Impiegati %s secondi con una gless ------------\n\n" %
+    print("\n------------ Impiegati %0.2f secondi con la funzione di g modificata ------------\n\n" %
           (time.time() - start_time))
 
 
