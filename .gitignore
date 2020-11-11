@@ -128,5 +128,6 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+Matrix_Optimization.py
 test.py
 start.sh
