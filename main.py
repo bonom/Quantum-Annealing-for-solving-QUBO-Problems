@@ -111,19 +111,19 @@ def g_faster(Q, A, oldperm, pr, P):
     inversed = inverse(perm, n)
 
     Theta = np.zeros((n, n))
-    for i in range(n):
-        for j in range(n):
-            if (A.item(i, j) == 1):
-                k = inversed[i]
-                l = inversed[j]
-                Theta[i][j] = Q[k][l]
 
-    tmp = np.multiply((((np.transpose(Pprime)).dot(Q)).dot(Pprime)), (A))
-
-    if (tmp == Theta).all() == False:
-        print("Error calculating Theta via algorithm")
-        exit(-1)
-
+    rows,cols = A.nonzero()
+    for row,col in zip(rows,cols):
+        k = inversed[row]
+        l = inversed[col]
+        Theta[row][col] = Q[k][l]
+    
+    #tmp = np.multiply((((np.transpose(Pprime)).dot(Q)).dot(Pprime)), (A.todense()))
+#
+    #if (tmp == Theta).all() == False:
+    #    print("Error calculating Theta via algorithm")
+    #    exit(-1)
+    
     return Pprime, Theta, perm
 
 
@@ -256,7 +256,11 @@ def QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
     d = 0
     i = 0
     lam = lambda_zero
+
+    sum_time = 0
+
     while True:
+        start_time = time.time()
         print(f"-- Ciclo numero {i + 1}")  # , end = "\r")
         Q_prime = np.add(Q, (np.multiply(lam, S)))
         if (i % n == 0):
@@ -299,7 +303,9 @@ def QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
             else:
                 print("\n")
             break
-        
+        sum_time += (time.time() - start_time)
+    
+    print(f"Tempo medio per iterazione: {sum_time/i}")
     return z_star
 
 def show_graph(adjacency_matrix, mylabels=None):
@@ -346,14 +352,14 @@ def main():
     
     if(n % 8 == 0) and (rows * columns * 8 == n):
         A = dnx.chimera_graph(rows, columns)
-        matrix_A = (nx.adjacency_matrix(A)).todense()
+        matrix_A = nx.adjacency_matrix(A)#.todense()
     else:
         exit("Error", -1)
     
     print(
-        f"FATTO!\n--------------- A matrice {matrix_A.shape} ---------------\n{matrix_A}\n")
-    if(input("Vuoi vedere il grafo di A (S/n)? ") in ["S", "s", "y", "Y"]):
-        show_graph(matrix_A)
+        f"FATTO!\n--------------- A matrice {matrix_A.shape} ---------------\n{matrix_A.todense()}\n")
+    #if(input("Vuoi vedere il grafo di A (S/n)? ") in ["S", "s", "y", "Y"]):
+    #    show_graph(matrix_A)
 
     print("\n")
 
