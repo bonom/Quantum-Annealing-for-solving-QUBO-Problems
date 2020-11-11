@@ -66,45 +66,74 @@ def h(vect, pr):  # algorithm 4
             vect[i] = -vect[i]
     return vect
 
+def check_equality(A,B):
+    row_A, col_A = A.shape
+    row_B, col_B = B.shape
+    if row_A == row_B and col_A == col_B:
+        for row in range(row_A):
+            for col in range(col_A):
+                if A.item((row,col)) != B.item((row,col)):
+                    return False
+        return True
+    else:
+        return False
+    
+
+
 def new_g(A, P, Q, old_dic, pr):
+    print(f"Viene passata P come:\n{P}\n -- e Q come --\n{Q}")
+    print(f"Old_dic = {old_dic} e pr = {pr}")
     n, columns = Q.shape
-    m = dict()
+    m = np.arange((n))
     for i in range(n):
         if make_decision(pr):
             m[i] = i
-    vals = list(m.values())
-    np.random.shuffle(vals)
-    m = dict(zip(m.keys(), vals))
-    
-    final_m = inverse(complete(m, old_dic, n), n)
+            
+    np.random.shuffle(m)
+    tmp = complete(m, old_dic, n)
+    final_m = inverse(tmp, n)
     
     #Devo farlo per test e per tornare la matrice per le operazioni di z_star
     Pprime = np.zeros((n, n))
+    print(f"m = {m} vettore posizioni = {final_m}")
     for i in range(n):
-        if i in m.values():
+        if i in m:
             Pprime[i] = P[m[i]]
         else:
             Pprime[i] = P[i]
-
+    
+    print(f"Ne esce un Pprime così: \n{Pprime}")
     Theta = np.zeros((n, n))
     for i in range(n):
         for j in range(n):
             if A.item((i, j)) == 1:
+                print(f"A[{i}][{j}] == 1")
                 k = final_m[i]
+                print(f"k = final_m[{i}] -- {k} = {final_m[i]}")
                 l = final_m[j]
-                Theta[i][j] = Q[k][l]
-            
+                print(f"l = final_m[{j}] -- {l} = {final_m[j]}")
+                print(f"Quindi Theta[{i}][{j}] = Q[k][l] = Q[{k}][{l}] = {Q[k][l]}")
+                Theta[i][j] = Q.item((k,l))
+     
     print(
         f"-- Theta calcolato matematicamente --\n{np.multiply((((np.transpose(Pprime)).dot(Q)).dot(Pprime)), (A))}")
     print(f"-- Theta calcolato con l'algoritmo --\n{Theta}")
-    input("Premi INVIO per continuare...")
-    return Pprime, Theta, final_m
-
+    
+    if (Theta == (np.multiply((((np.transpose(Pprime)).dot(Q)).dot(Pprime)), (A)))).all() == True:
+        print("Equals")
+    else:
+        print("Not equals")
+        exit(-1)
+    
+    return Pprime, Theta, m
 
 def inverse(dic, n):
+    #print(f"||| Chiamata funzione inverse|||\n{dic} e n = {n}")
     inverted = np.arange((n))
     for i in range(n):
+        #print(f"Inverted in posizione dic[{i}] = {dic[i]} assegno {i}")
         inverted[dic[i]] = i
+    #print(f"Alla fine inverted = {inverted}")
     return inverted
 
 
@@ -125,26 +154,26 @@ def QALS_gless(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
     I = np.identity(n)
     P = I
     p = 1
-    P_one, Theta_one, m_one = new_g(A, P, Q, m_one, 1)
-    P_two, Theta_two, m_two = new_g(A, P, Q, m_two, 1)
+    P_one, Theta_one, m_one = new_g(A.copy(), P.copy(), Q.copy(), m_one.copy(), 1)
+    P_two, Theta_two, m_two = new_g(A.copy(), P.copy(), Q.copy(), m_two.copy(), 1)
     # for i in range(k):
     #z_one = (np.transpose(P_one)).dot(random_z(n))
     #z_two = (np.transpose(P_one)).dot(random_z(n))
-    z_one = (np.transpose(P_one)).dot(minimization(Theta_one))
-    z_two = (np.transpose(P_two)).dot(minimization(Theta_two))
-    f_one = function_f(Q, z_one)
-    f_two = function_f(Q, z_two)
+    z_one = (np.transpose(P_one.copy())).dot(minimization(Theta_one.copy()))
+    z_two = (np.transpose(P_two.copy())).dot(minimization(Theta_two.copy()))
+    f_one = function_f(Q.copy(), z_one.copy())
+    f_two = function_f(Q.copy(), z_two.copy())
     if (f_one < f_two).all():
         z_star = z_one
         f_star = f_one
         P_star = P_one
-        m = m_one
+        m_star = m_one
         z_prime = z_two
     else:
         z_star = z_two
         f_star = f_two
         P_star = P_two
-        m = m_two
+        m_star = m_two
         z_prime = z_one
     if (f_one == f_two).all() == False:
         S = (np.outer(z_prime, z_prime) - I) + np.diagflat(z_prime)
@@ -154,26 +183,28 @@ def QALS_gless(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
     d = 0
     i = 0
     lam = lambda_zero
+    print(f"Entriamo con questo m: {m_star}")
     while True:
         # , end = "\r")
         print(f"-- Ciclo numero {i + 1} con e = {e} e d = {d}")
         Q_prime = np.add(Q, (np.multiply(lam, S)))
         if (i % n == 0):
             p = p - ((p - p_delta)*eta)
-        P, Theta_prime, m = new_g(A, P_star, Q_prime, m, p)
+        P, Theta_prime, m = new_g(A.copy(), P_star.copy(), Q_prime.copy(), m_star.copy(), p)
         # for i in range(k):
         #z_prime = (np.transpose(P)).dot(random_z(n))
-        z_prime = (np.transpose(P)).dot(minimization(Theta_prime))
+        z_prime = (np.transpose(P.copy())).dot(minimization(Theta_prime.copy()))
         sys.stdout.write("\033[F")
         sys.stdout.write("\033[K")
         if make_decision(q):
-            z_prime = h(z_prime, q)
+            z_prime = h(z_prime.copy(), q)
         if (z_prime == z_star).all() == False:
-            f_prime = function_f(Q, z_prime)
+            f_prime = function_f(Q.copy(), z_prime.copy())
             if (f_prime < f_star).all():
                 z_prime, z_star = z_star, z_prime
                 f_star = f_prime
                 P_star = P
+                m_star = m
                 e = 0
                 d = 0
                 S = S + ((np.outer(z_prime, z_prime) - I) +
@@ -184,6 +215,7 @@ def QALS_gless(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
                     z_prime, z_star = z_star, z_prime
                     f_star = f_prime
                     P_star = P
+                    m_star = m
                     e = 0
             # R:37 lambda diminuirebbe
             # lam = lam - i/i_max
