@@ -135,8 +135,7 @@ def QALS(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
         # for i in range(k):
         #z_prime = (np.transpose(P)).dot(random_z(n))
         z_prime = (np.transpose(P)).dot(minimization(Theta_prime))
-        sys.stdout.write("\033[F")
-        sys.stdout.write("\033[K")
+        sys.stdout.write("\033[K\033[F\033[K")
         if make_decision(q):
             z_prime = h(z_prime, q)
         if (z_prime == z_star).all() == False:
@@ -162,8 +161,14 @@ def QALS(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
             e = e + 1
         i = i + 1
         if ((i == i_max) or ((e + d >= N_max) and (d < d_min))):
+            sys.stdout.write("\033[K")
+            print(f"Uscito al ciclo {i}/{i_max} ", end = '')
+            if(i != i_max):
+                print("ed è stata raggiunta la convergenza.")
+            else:
+                print("\n")
             break
-    print(f"\n--- Uscito al ciclo {i} ---\n{z_star}")
+        
     return z_star
 
 def show_graph(adjacency_matrix, mylabels=None):
@@ -224,7 +229,7 @@ def main():
     
     QALS(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, matrix_A, Q)
     
-    print("\n------------ Impiegati %0.2f secondi con la funzione di g modificata ------------\n\n" %
+    print("\n------------ Impiegati %0.2f secondi ------------\n\n" %
           (time.time() - start_time))
 
 
