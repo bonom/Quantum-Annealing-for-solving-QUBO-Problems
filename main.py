@@ -351,7 +351,7 @@ def main():
     #if(input("Vuoi vedere il grafo di A (S/n)? ") in ["S", "s", "y", "Y"]):
     #    graph.show_graph(matrix_A)
 
-    print("\n")
+    #print("\n")
 
     #start_time = time.time()
     #
@@ -360,7 +360,7 @@ def main():
     #print("\n------------ Impiegati %0.2f secondi senza l'algoritmo ------------\n\n" %
     #      (time.time() - start_time))
     start_time = time.time()
-    
+    print(f"Dati inseriti:\nd min = {d_min}\neta = {eta}\ni max = {i_max}\nk = {k}\nlambda zero = {lambda_zero}\nn = {n}\nN max = {N_max}\np delta = {p_delta}\nq = {q}\n")
     QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, matrix_A, Q)
     
     print("\n------------ Impiegati %0.2f secondi con l'algoritmo ------------\n\n" %
