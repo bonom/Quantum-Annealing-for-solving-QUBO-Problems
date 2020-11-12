@@ -13,12 +13,11 @@
 
 import numpy as np
 import time
-import Matrix_Optimization
 import dwave_networkx as dnx
-import matplotlib.pyplot as plt
 import networkx as nx
 import sys
-np.set_printoptions(threshold=sys.maxsize)
+
+import graph
 
 
 def update(vector):
@@ -308,15 +307,6 @@ def QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
     print(f"Tempo medio per iterazione: {sum_time/i}")
     return z_star
 
-def show_graph(adjacency_matrix, mylabels=None):
-    rows, cols = np.where(adjacency_matrix == 1)
-    edges = zip(rows.tolist(), cols.tolist())
-    gr = nx.Graph()
-    gr.add_edges_from(edges)
-    nx.draw(gr, node_size=500, labels=mylabels, with_labels=True)
-    plt.show()
-
-
 def main():
     """Dati """
     i_max = 1000
@@ -350,7 +340,7 @@ def main():
     print(f"FATTO!\n--------------- Q matrice {Q.shape} ---------------\n{Q}")
     print(f"\nCreo A ...", end=' ')
     
-    if(n % 8 == 0) and (rows * columns * 8 == n):
+    if(rows * columns * 8 == n):
         A = dnx.chimera_graph(rows, columns)
         matrix_A = nx.adjacency_matrix(A)#.todense()
     else:
@@ -359,7 +349,7 @@ def main():
     print(
         f"FATTO!\n--------------- A matrice {matrix_A.shape} ---------------\n{matrix_A.todense()}\n")
     #if(input("Vuoi vedere il grafo di A (S/n)? ") in ["S", "s", "y", "Y"]):
-    #    show_graph(matrix_A)
+    #    graph.show_graph(matrix_A)
 
     print("\n")
 
