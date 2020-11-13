@@ -1,5 +1,6 @@
 import dimod
 import hybrid
+import time
 import numpy as np
 
 def dict_to_vector(dic):
@@ -55,7 +56,7 @@ def solve(Q, ret_dict = False):
             Q:
                 A matrix Q to minimize (can be <class 'numpy.ndarray'> or <class 'dict'>)
 
-            ret_dict:
+            ret dict:
                 Boolean variable (default is False) that decides if return a <class 'dict'> (True) or a <class 'numpy.ndarray'> (False)
 
         Returns:
@@ -65,6 +66,7 @@ def solve(Q, ret_dict = False):
                 >>> solve(matrix)
         
     """
+    #start_time = time.time()
     # Construct the QUBO problem
     if isinstance(Q, dict):
         bqm = dimod.BinaryQuadraticModel({}, Q, 0, dimod.SPIN)
@@ -74,20 +76,27 @@ def solve(Q, ret_dict = False):
     else:
         print(f"[!] Error -- I can't understand what type is {type(Q)}, only <class 'dict'> or <class 'numpy.ndarray'> admitted")
         raise TypeError
-
+    
+    #print(f"Per costruire il QUBO problem ci ho messo: {time.time() - start_time}")
+    #start_time = time.time()
     # Define the workflow --- DO NOT TOUCH
     iteration = hybrid.RacingBranches(
         hybrid.InterruptableTabuSampler(),
-        hybrid.EnergyImpactDecomposer(size=2)
+        hybrid.EnergyImpactDecomposer(size=1)
         | hybrid.QPUSubproblemAutoEmbeddingSampler()
         | hybrid.SplatComposer()
     ) | hybrid.ArgMin()
+    #print(f"Min = {iteration}")
+    #print(f"Per l'iterazione max ci ho messo: {time.time() - start_time}")
+    #start_time = time.time()
     workflow = hybrid.LoopUntilNoImprovement(iteration, convergence=1)
-
+    #print(f"Per il ciclo ci ho messo: {time.time() - start_time}")
+    #start_time = time.time()
     # Solve the problem
     init_state = hybrid.State.from_problem(bqm)
     final_state = workflow.run(init_state).result()
     solution = final_state.samples.first.sample
+    #print(f"Per risolvere il problema ci ho messo: {time.time() - start_time}")
     #print(f"Solution of Q = {solution}")
     # Print results
     #print("Solution: sample={.samples.first}".format(final_state))
