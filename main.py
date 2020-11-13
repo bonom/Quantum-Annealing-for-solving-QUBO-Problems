@@ -16,6 +16,7 @@ import time
 import dwave_networkx as dnx
 import networkx as nx
 import sys
+import annealer
 
 import graph
 
@@ -47,7 +48,7 @@ def function_f(Q, x):
 
 
 def minimization(matrix):
-    n, m = matrix.shape
+    n = len(matrix)
     N = 2**n
     vector = np.empty([n])
     for i in range(n):
@@ -84,14 +85,16 @@ def g(P, pr):
 
 
 def h(vect, pr):  # algorithm 4
-    n, m = vect.shape
+    n = len(vect)
+    print(f"n = {n}")
+    input()
     for i in range(n):
         if make_decision(pr):
             vect[i] = -vect[i]
     return vect
 
 def g_faster(Q, A, oldperm, pr, P):
-    n, cols = Q.shape
+    n = len(Q)
     m = dict()
     for i in range(n):
         if make_decision(pr):
@@ -224,6 +227,8 @@ def QALS(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
         
     return z_star
 
+
+
 def QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
     I = np.identity(n)
     P = I
@@ -231,6 +236,7 @@ def QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
     P_one, Theta_one, m_one = g_faster(Q, A, np.arange(n), p, P)
     P_two, Theta_two, m_two = g_faster(Q, A, np.arange(n), p, P)
     # for i in range(k):
+    print(annealer.solve(Q))
     z_one = (np.transpose(P_one)).dot(minimization(Theta_one))
     z_two = (np.transpose(P_two)).dot(minimization(Theta_two))
     f_one = function_f(Q, z_one)
@@ -327,7 +333,7 @@ def main():
 
     """MAIN"""
     print(f"Creo Q ...", end=' ')
-    """
+    
     j_max = 0
     j = 0
     Q = np.zeros((n, n))
@@ -349,6 +355,7 @@ def main():
             Q[j,i] = Q[i,j]
             j += 1
         j = 0
+    """
     print(f"FATTO!\n--------------- Q matrice {Q.shape} ---------------\n{Q}")
     print(f"\nCreo A ...", end=' ')
     
