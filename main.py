@@ -327,6 +327,7 @@ def main():
 
     """MAIN"""
     print(f"Creo Q ...", end=' ')
+    """
     j_max = 0
     j = 0
     Q = np.zeros((n, n))
@@ -335,6 +336,17 @@ def main():
         while j < j_max:
             Q[i][j] = np.random.randint(low=-10, high=10)
             Q[j][i] = Q[i][j]
+            j += 1
+        j = 0
+    """
+    j_max = 0
+    j = 0
+    Q = dict()
+    for i in range(n):
+        j_max += 1
+        while j < j_max:
+            Q[i,j] = np.random.randint(low=-10, high=10)
+            Q[j,i] = Q[i,j]
             j += 1
         j = 0
     print(f"FATTO!\n--------------- Q matrice {Q.shape} ---------------\n{Q}")
