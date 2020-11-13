@@ -18,9 +18,6 @@ import networkx as nx
 import sys
 import annealer
 
-import graph
-
-
 def update(vector):
     dim = len(vector)
     i = 0
