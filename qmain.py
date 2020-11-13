@@ -20,7 +20,7 @@ import dwave_networkx as dnx
 import networkx as nx
 import sys
 import annealer
-import graph
+
 def update(vector):
     dim = len(vector)
     i = 0
@@ -112,8 +112,15 @@ def QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
     P_one, Theta_one, m_one = g_faster(Q, A, np.arange(n), p, P)
     P_two, Theta_two, m_two = g_faster(Q, A, np.arange(n), p, P)
     for i in range(k):
+        print(f"Minimizzazione in corso... {int((i/k)*100)}%", end="\r")
+        start_time = time.time()
         z_one = (np.transpose(P_one)).dot(annealer.solve(Theta_one))
+        print("\n------------ Impiegati %0.2f secondi con l'algoritmo ------------\n\n" %
+          (time.time() - start_time))
+        start_time = time.time()
         z_two = (np.transpose(P_two)).dot(annealer.solve(Theta_two))
+        print("\n------------ Impiegati %0.2f secondi con l'algoritmo ------------\n\n" %
+          (time.time() - start_time))
     f_one = function_f(Q, z_one)
     f_two = function_f(Q, z_two)
     if (f_one < f_two).all():
@@ -147,6 +154,7 @@ def QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
             p = p - ((p - p_delta)*eta)
         P, Theta_prime, m = g_faster(Q_prime, A, m_star, p, P_star)
         for i in range(k):
+            print(f"Minimizzazione in corso... {int((i/k)*100)}%", end="\r")
             z_prime = (np.transpose(P)).dot(annealer.solve(Theta_prime))
         sys.stdout.write("\033[K\033[F\033[K")
         if make_decision(q):
