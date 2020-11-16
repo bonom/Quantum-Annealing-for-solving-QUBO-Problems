@@ -27,15 +27,6 @@ def update(vector):
     if(i < dim):
         vector[i] = 1
 
-
-def print_file(z):
-    outF = open("Output.txt", "w")
-    for line in z:
-        outF.write(str(line))
-        outF.write("\n")
-    outF.close()
-
-
 def make_decision(probability):
     return np.random.random() < probability
 
@@ -83,8 +74,6 @@ def g(P, pr):
 
 def h(vect, pr):  # algorithm 4
     n = len(vect)
-    print(f"n = {n}")
-    input()
     for i in range(n):
         if make_decision(pr):
             vect[i] = -vect[i]
@@ -116,12 +105,6 @@ def g_faster(Q, A, oldperm, pr, P):
         k = inversed[row]
         l = inversed[col]
         Theta[row][col] = Q[k][l]
-    
-    #tmp = np.multiply((((np.transpose(Pprime)).dot(Q)).dot(Pprime)), (A.todense()))
-#
-    #if (tmp == Theta).all() == False:
-    #    print("Error calculating Theta via algorithm")
-    #    exit(-1)
     
     return Pprime, Theta, perm
 
@@ -225,7 +208,6 @@ def QALS(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
     return z_star
 
 
-
 def QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
     I = np.identity(n)
     P = I
@@ -233,7 +215,6 @@ def QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
     P_one, Theta_one, m_one = g_faster(Q, A, np.arange(n), p, P)
     P_two, Theta_two, m_two = g_faster(Q, A, np.arange(n), p, P)
     # for i in range(k):
-    print(annealer.solve(Q))
     z_one = (np.transpose(P_one)).dot(minimization(Theta_one))
     z_two = (np.transpose(P_two)).dot(minimization(Theta_two))
     f_one = function_f(Q, z_one)
@@ -341,18 +322,7 @@ def main():
             Q[j][i] = Q[i][j]
             j += 1
         j = 0
-    """
-    j_max = 0
-    j = 0
-    Q = dict()
-    for i in range(n):
-        j_max += 1
-        while j < j_max:
-            Q[i,j] = np.random.randint(low=-10, high=10)
-            Q[j,i] = Q[i,j]
-            j += 1
-        j = 0
-    """
+
     print(f"FATTO!\n--------------- Q matrice {Q.shape} ---------------\n{Q}")
     print(f"\nCreo A ...", end=' ')
     
@@ -364,17 +334,7 @@ def main():
     
     print(
         f"FATTO!\n--------------- A matrice {matrix_A.shape} ---------------\n{matrix_A.todense()}\n")
-    #if(input("Vuoi vedere il grafo di A (S/n)? ") in ["S", "s", "y", "Y"]):
-    #    graph.show_graph(matrix_A)
 
-    #print("\n")
-
-    #start_time = time.time()
-    #
-    #QALS(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, matrix_A, Q)
-    #
-    #print("\n------------ Impiegati %0.2f secondi senza l'algoritmo ------------\n\n" %
-    #      (time.time() - start_time))
     start_time = time.time()
     print(f"Dati inseriti:\nd min = {d_min}\neta = {eta}\ni max = {i_max}\nk = {k}\nlambda zero = {lambda_zero}\nn = {n}\nN max = {N_max}\np delta = {p_delta}\nq = {q}\n")
     QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, matrix_A, Q)

@@ -120,4 +120,4 @@ def main(n):
     solve(Q)
 
 if __name__ == '__main__':
-    main(4)
+    main(2048)

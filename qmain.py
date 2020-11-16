@@ -11,33 +11,12 @@
     d_min = 100
 """
 
-
-
-
 import numpy as np
 import time
 import dwave_networkx as dnx
 import networkx as nx
 import sys
 import annealer
-
-def update(vector):
-    dim = len(vector)
-    i = 0
-    while(i < dim and vector[i] == 1):
-        vector[i] = -1
-        i += 1
-    if(i < dim):
-        vector[i] = 1
-
-
-def print_file(z):
-    outF = open("Output.txt", "w")
-    for line in z:
-        outF.write(str(line))
-        outF.write("\n")
-    outF.close()
-
 
 def make_decision(probability):
     return np.random.random() < probability
@@ -228,18 +207,7 @@ def main():
             Q[j][i] = Q[i][j]
             j += 1
         j = 0
-    """
-    j_max = 0
-    j = 0
-    Q = dict()
-    for i in range(n):
-        j_max += 1
-        while j < j_max:
-            Q[i,j] = np.random.randint(low=-10, high=10)
-            Q[j,i] = Q[i,j]
-            j += 1
-        j = 0
-    """
+        
     print(f"FATTO!\n--------------- Q matrice {Q.shape} ---------------\n{Q}")
     print(f"\nCreo A ...", end=' ')
 
