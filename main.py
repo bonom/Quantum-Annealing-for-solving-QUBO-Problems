@@ -104,7 +104,7 @@ def g_faster(Q, A, oldperm, pr, P):
     for row,col in zip(rows,cols):
         k = inversed[row]
         l = inversed[col]
-        Theta[row][col] = Q[k][l]
+        Theta[row][col] = Q.item((k,l))
     
     return Pprime, Theta, perm
 
@@ -217,9 +217,9 @@ def QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
     # for i in range(k):
     z_one = (np.transpose(P_one)).dot(minimization(Theta_one))
     z_two = (np.transpose(P_two)).dot(minimization(Theta_two))
-    f_one = function_f(Q, z_one)
-    f_two = function_f(Q, z_two)
-    if (f_one < f_two).all():
+    f_one = function_f(Q, z_one).item()
+    f_two = function_f(Q, z_two).item()
+    if (f_one < f_two):
         z_star = z_one
         f_star = f_one
         P_star = P_one
@@ -231,7 +231,7 @@ def QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
         P_star = P_two
         m_star = m_two
         z_prime = z_one
-    if (f_one == f_two).all() == False:
+    if (f_one == f_two) == False:
         S = (np.outer(z_prime, z_prime) - I) + np.diagflat(z_prime)
     else:
         S = np.zeros((n, n))
@@ -248,6 +248,7 @@ def QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
         Q_prime = np.add(Q, (np.multiply(lam, S)))
         if (i % n == 0):
             p = p - ((p - p_delta)*eta)
+
         P, Theta_prime, m = g_faster(Q_prime, A, m_star, p, P_star)
         # for i in range(k):
         z_prime = (np.transpose(P)).dot(minimization(Theta_prime))
@@ -255,8 +256,9 @@ def QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
         if make_decision(q):
             z_prime = h(z_prime, q)
         if (z_prime == z_star).all() == False:
-            f_prime = function_f(Q_prime, z_prime)
-            if (f_prime < f_star).all():
+            f_prime = function_f(Q_prime, z_prime).item()
+            #print(f"f_prime = {f_prime} con {type(f_prime)}")
+            if (f_prime < f_star):
                 z_prime, z_star = z_star, z_prime
                 f_star = f_prime
                 P_star = P
@@ -267,6 +269,7 @@ def QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
                          np.diagflat(z_prime))
             else:
                 d = d + 1
+                #print(f"cosa è p : {type(p)} con valore {p}\ncosa è f_prime : {type(f_prime)} con valore {f_prime}\ncosa è f_star {type(f_star)} con valore {f_star}")
                 if make_decision((p**(f_prime-f_star))):
                     z_prime, z_star = z_star, z_prime
                     f_star = f_prime
@@ -293,35 +296,65 @@ def QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
 
 def main():
     """Dati """
-    i_max = 1000
-    q = 0.01
+    i_max = 3000
+    q = 0.1
     p_delta = 0.1
-    eta = 0.1
-    lambda_zero = 1
-    k = 20
-    N_max = 100
-    d_min = 100
-    n = 8
+    eta = 0.01
+    lambda_zero = 1.0
+    k = 1
+    N_max = 50
+    d_min = 30
+    n = 16
+    """
+    double pmin = 0.1f;     // minimum probability 0 < pδ < 0.5 of permutation modification
+    double eta = 0.01f;     // probability decreasing rate η > 0
+    double q = 0.1f;        // candidate perturbation probability q > 0
+    double lambda0 = 1.0f;  // initial balancing factor λ0 > 0
+    int k = 1;              // number of annealer runs k ≥ 1
+    int N = 10;             // Decreasing time
 
+    //Termination Parameters
+    int imax = 3000;  // Max number of iteration
+    int Nmax = 50;    // Max number of: solution equal to the best one + solution worse than the best one
+    int dmin = 30;    // Number of solution that are worse than the best beyond which the best solution is not valid anymore
+    """
     """
     Solo per test
     """
     rows = 1
-    columns = 1
+    columns = 2
 
     """MAIN"""
     print(f"Creo Q ...", end=' ')
     
     j_max = 0
     j = 0
-    Q = np.zeros((n, n))
-    for i in range(n):
-        j_max += 1
-        while j < j_max:
-            Q[i][j] = np.random.randint(low=-10, high=10)
-            Q[j][i] = Q[i][j]
-            j += 1
-        j = 0
+    #Q = np.zeros((n, n))
+    #for i in range(n):
+    #    j_max += 1
+    #    while j < j_max:
+    #        Q[i][j] = np.random.randint(low=-10, high=10)
+    #        Q[j][i] = Q[i][j]
+    #        j += 1
+    #    j = 0
+
+    Q = np.matrix([
+         [0,  0.2,  9.7,  9.5, -4.6, -8.2,  4.7, -3.4, -3.5,    6,  0.2,  6.3,  8.6,  8.7,  7.8,  3.9],
+       [0.2,    1, -0.1, -7.1, -5.5,  9.3,  6.8, -7.7,  6.7,   -3, -3.5, -6.9,    9,  4.6, -6.2, -0.4],
+       [9.7, -0.1,    2, -1.9, -0.3,  9.8, -2.3, -0.9, -9.9, -5.5, -6.2, -3.2,    1,  4.8,    2, -7.7],
+       [9.5, -7.1, -1.9,    3,  3.3,  0.7,  5.1, -7.9, -9.5,    8, -8.3,  9.8,  4.7,  9.1,  6.4,  6.7],
+      [-4.6, -5.5, -0.3,  3.3,    4, -4.5,  4.6,  5.7,  -10,  3.4, -4.8, -1.9,   -7,   10,  0.8,  2.2],
+      [-8.2,  9.3,  9.8,  0.7, -4.5,    5, -9.9,  5.4,    6, -8.1, -8.7,  0.7,  3.9, -6.4,    9, -5.5],
+       [4.7,  6.8, -2.3,  5.1,  4.6, -9.9,    6,  3.7, -8.9,  -10,  1.6,  7.9,  4.8, -8.8,  6.9,  1.2],
+      [-3.4, -7.7, -0.9, -7.9,  5.7,  5.4,  3.7,    7,    8, -7.7, -9.3, -1.4,  7.4,  4.1,  3.8, -9.5],
+      [-3.5,  6.7, -9.9, -9.5,  -10,    6, -8.9,    8,    8,  2.1,  3.7,  1.3, -5.8, -1.2, -8.4,  5.2],
+         [6,   -3, -5.5,    8,  3.4, -8.1,  -10, -7.7,  2.1,    9,  0.7,  8.1, -4.2,  9.7,  6.7,  9.9],
+       [0.2, -3.5, -6.2, -8.3, -4.8, -8.7,  1.6, -9.3,  3.7,  0.7,   10,  9.2,  0.4,    6,  9.3,    7],
+       [6.3, -6.9, -3.2,  9.8, -1.9,  0.7,  7.9, -1.4,  1.3,  8.1,  9.2,   11,  3.8,    4,  8.3,  0.6],
+       [8.6,    9,    1,  4.7,   -7,  3.9,  4.8,  7.4, -5.8, -4.2,  0.4,  3.8,   12, -9.9,  1.2, -2.1],
+       [8.7,  4.6,  4.8,  9.1,   10, -6.4, -8.8,  4.1, -1.2,  9.7,    6,    4, -9.9,   13,  5.9,  9.8],
+       [7.8, -6.2,    2,  6.4,  0.8,    9,  6.9,  3.8, -8.4,  6.7,  9.3,  8.3,  1.2,  5.9,   14, -9.8],
+       [3.9, -0.4, -7.7,  6.7,  2.2, -5.5,  1.2, -9.5,  5.2,  9.9,    7,  0.6, -2.1,  9.8, -9.8,   15]])
 
     print(f"FATTO!\n--------------- Q matrice {Q.shape} ---------------\n{Q}")
     print(f"\nCreo A ...", end=' ')
