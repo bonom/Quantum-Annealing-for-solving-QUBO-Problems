@@ -323,19 +323,6 @@ def main():
     d_min = 30
     n = 16
     """
-    double pmin = 0.1f;     // minimum probability 0 < pδ < 0.5 of permutation modification
-    double eta = 0.01f;     // probability decreasing rate η > 0
-    double q = 0.1f;        // candidate perturbation probability q > 0
-    double lambda0 = 1.0f;  // initial balancing factor λ0 > 0
-    int k = 1;              // number of annealer runs k ≥ 1
-    int N = 10;             // Decreasing time
-
-    //Termination Parameters
-    int imax = 3000;  // Max number of iteration
-    int Nmax = 50;    // Max number of: solution equal to the best one + solution worse than the best one
-    int dmin = 30;    // Number of solution that are worse than the best beyond which the best solution is not valid anymore
-    """
-    """
     Solo per test
     """
     rows = 1
