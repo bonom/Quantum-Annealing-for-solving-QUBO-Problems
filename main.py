@@ -79,7 +79,7 @@ def h(vect, pr):  # algorithm 4
             vect[i] = -vect[i]
     return vect
 
-def g_faster(Q, A, oldperm, pr, P):
+def g_faster(Q, A, oldperm, pr):#, P):
     n = len(Q)
     m = dict()
     for i in range(n):
@@ -88,13 +88,14 @@ def g_faster(Q, A, oldperm, pr, P):
     vals = list(m.values())
     np.random.shuffle(vals)
     m = dict(zip(m.keys(), vals))
+    """
     Pprime = np.empty((n, n), dtype=int)
     for i in range(n):
         if i in m.values():
             Pprime[i] = P[m[i]]
         else:
             Pprime[i] = P[i]
-
+    """
     perm = fill(m, oldperm, n)
     inversed = inverse(perm, n)
 
@@ -106,7 +107,7 @@ def g_faster(Q, A, oldperm, pr, P):
         l = inversed[col]
         Theta[row][col] = Q.item((k,l))
     
-    return Pprime, Theta, perm
+    return Theta, perm
 
 
 def fill(m, perm, n):
@@ -125,6 +126,17 @@ def inverse(perm, n):
         inverted[perm[i]] = i
 
     return inverted
+
+def map_back(z, perm):
+    n = len(perm)
+    inverted = inverse(perm, n)
+
+    z_ret = np.empty((n))
+
+    for i in range(n):
+        z_ret[i] = z[inverted[i]]
+
+    return np.atleast_2d(z_ret).T
 
 
 def QALS(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
@@ -212,23 +224,25 @@ def QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
     I = np.identity(n)
     P = I
     p = 1
-    P_one, Theta_one, m_one = g_faster(Q, A, np.arange(n), p, P)
-    P_two, Theta_two, m_two = g_faster(Q, A, np.arange(n), p, P)
+    Theta_one, m_one = g_faster(Q, A, np.arange(n), p)
+    Theta_two, m_two = g_faster(Q, A, np.arange(n), p)
     # for i in range(k):
-    z_one = (np.transpose(P_one)).dot(minimization(Theta_one))
-    z_two = (np.transpose(P_two)).dot(minimization(Theta_two))
+    #z_one = (np.transpose(P_one)).dot(minimization(Theta_one))
+    #z_two = (np.transpose(P_two)).dot(minimization(Theta_two))
+    z_one = map_back(minimization(Theta_one), m_one)
+    z_two = map_back(minimization(Theta_two), m_two)
     f_one = function_f(Q, z_one).item()
     f_two = function_f(Q, z_two).item()
     if (f_one < f_two):
         z_star = z_one
         f_star = f_one
-        P_star = P_one
+        #P_star = P_one
         m_star = m_one
         z_prime = z_two
     else:
         z_star = z_two
         f_star = f_two
-        P_star = P_two
+        #P_star = P_two
         m_star = m_two
         z_prime = z_one
     if (f_one == f_two) == False:
@@ -249,9 +263,10 @@ def QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
         if (i % n == 0):
             p = p - ((p - p_delta)*eta)
 
-        P, Theta_prime, m = g_faster(Q_prime, A, m_star, p, P_star)
+        Theta_prime, m = g_faster(Q_prime, A, m_star, p)
         # for i in range(k):
-        z_prime = (np.transpose(P)).dot(minimization(Theta_prime))
+        #z_prime = (np.transpose(P)).dot(minimization(Theta_prime))
+        z_prime = map_back(minimization(Theta_prime), m)
         sys.stdout.write("\033[K\033[F\033[K")
         if make_decision(q):
             z_prime = h(z_prime, q)
@@ -261,7 +276,7 @@ def QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
             if (f_prime < f_star):
                 z_prime, z_star = z_star, z_prime
                 f_star = f_prime
-                P_star = P
+                #P_star = P
                 m_star = m
                 e = 0
                 d = 0
@@ -273,7 +288,7 @@ def QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
                 if make_decision((p**(f_prime-f_star))):
                     z_prime, z_star = z_star, z_prime
                     f_star = f_prime
-                    P_star = P
+                    #P_star = P
                     m_star = m
                     e = 0
             # R:37 lambda diminuirebbe

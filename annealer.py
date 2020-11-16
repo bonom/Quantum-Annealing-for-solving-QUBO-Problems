@@ -66,7 +66,7 @@ def solve(Q, ret_dict = False):
                 >>> solve(matrix)
         
     """
-    #start_time = time.time()
+    
     # Construct the QUBO problem
     if isinstance(Q, dict):
         bqm = dimod.BinaryQuadraticModel({}, Q, 0, dimod.SPIN)
@@ -77,8 +77,6 @@ def solve(Q, ret_dict = False):
         print(f"[!] Error -- I can't understand what type is {type(Q)}, only <class 'dict'> or <class 'numpy.ndarray'> admitted")
         raise TypeError
     
-    #print(f"Per costruire il QUBO problem ci ho messo: {time.time() - start_time}")
-    #start_time = time.time()
     # Define the workflow --- DO NOT TOUCH
     iteration = hybrid.RacingBranches(
         hybrid.InterruptableTabuSampler(),
@@ -86,17 +84,14 @@ def solve(Q, ret_dict = False):
         | hybrid.QPUSubproblemAutoEmbeddingSampler()
         | hybrid.SplatComposer()
     ) | hybrid.ArgMin()
-    #print(f"Min = {iteration}")
-    #print(f"Per l'iterazione max ci ho messo: {time.time() - start_time}")
-    #start_time = time.time()
+    
     workflow = hybrid.LoopUntilNoImprovement(iteration, convergence=1)
-    #print(f"Per il ciclo ci ho messo: {time.time() - start_time}")
-    #start_time = time.time()
+
     # Solve the problem
     init_state = hybrid.State.from_problem(bqm)
     final_state = workflow.run(init_state).result()
     solution = final_state.samples.first.sample
-    #print(f"Per risolvere il problema ci ho messo: {time.time() - start_time}")
+    
     #print(f"Solution of Q = {solution}")
     # Print results
     #print("Solution: sample={.samples.first}".format(final_state))
@@ -121,4 +116,3 @@ def main(n):
 
 if __name__ == '__main__':
     main(2048)
-    
