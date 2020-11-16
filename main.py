@@ -221,8 +221,10 @@ def QALS(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
 
 
 def QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
+    check_Q = minimization(Q)
+    print(f"Dobbiamo raggiungere questo vettore: {np.atleast_2d(check_Q).T}")
     I = np.identity(n)
-    P = I
+    #P = I
     p = 1
     Theta_one, m_one = g_faster(Q, A, np.arange(n), p)
     Theta_two, m_two = g_faster(Q, A, np.arange(n), p)
@@ -296,7 +298,7 @@ def QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
         else:
             e = e + 1
         i = i + 1
-        print(f"-- --- Valori -- --\np = {p}, f_prime = {f_prime}, f_star = {f_star} e z\n{z_star}")
+        print(f"-- --- Valori ciclo {i}/{i_max} -- --\np = {p}, f_prime = {f_prime}, f_star = {f_star}, e = {e}, d = {d} dunque la condizione è (e+d){e+d} >= {N_max}(N_max) and (d){d} < {d_min}(d_min) e lambda = {lam}\nz = {np.atleast_2d(z_star).T}\n  = {np.atleast_2d(check_Q).T}")
         if ((i == i_max) or ((e + d >= N_max) and (d < d_min))):
             sys.stdout.write("\033[K")
             print(f"Uscito al ciclo {i}/{i_max} ", end = '')
@@ -306,6 +308,9 @@ def QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
                 print("\n")
             break
         sum_time += (time.time() - start_time)
+        if(check_Q == z_star).all():
+            if input("Sono uguali, continuo o termino?") in ['t']:
+                exit(-1)
     
     print(f"Tempo medio per iterazione: {sum_time/i}")
 
@@ -374,7 +379,7 @@ def main():
 
     start_time = time.time()
     print(f"Dati inseriti:\nd min = {d_min}\neta = {eta}\ni max = {i_max}\nk = {k}\nlambda zero = {lambda_zero}\nn = {n}\nN max = {N_max}\np delta = {p_delta}\nq = {q}\n")
-    QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, matrix_A, Q)
+    print(f"\n\n -- Risultato --\n{QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, matrix_A, Q)}")
     
     print("\n------------ Impiegati %0.2f secondi con l'algoritmo ------------\n\n" %
           (time.time() - start_time))
