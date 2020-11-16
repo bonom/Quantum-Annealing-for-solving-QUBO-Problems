@@ -296,6 +296,7 @@ def QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
         else:
             e = e + 1
         i = i + 1
+        print(f"-- --- Valori -- --\np = {p}, f_prime = {f_prime}, f_star = {f_star} e z\n{z_star}")
         if ((i == i_max) or ((e + d >= N_max) and (d < d_min))):
             sys.stdout.write("\033[K")
             print(f"Uscito al ciclo {i}/{i_max} ", end = '')
@@ -307,6 +308,7 @@ def QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
         sum_time += (time.time() - start_time)
     
     print(f"Tempo medio per iterazione: {sum_time/i}")
+
     return z_star
 
 def main():
