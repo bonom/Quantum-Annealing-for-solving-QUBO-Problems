@@ -18,6 +18,13 @@ import networkx as nx
 import sys
 import annealer
 
+def print_file(z):
+    outF = open("Output.txt", "w")
+    for line in z:
+        outF.write(str(line))
+        outF.write("\n")
+    outF.close()
+
 def update(vector):
     dim = len(vector)
     i = 0
@@ -48,7 +55,7 @@ def minimization(matrix):
         print(f"Minimizzazione in corso...  {int((i/N)*100)}%", end="\r")
         update(vector)
         e = function_f(matrix, np.atleast_2d(vector).T)
-        if(abs(e) < abs(minimum)):
+        if(e < minimum):
             min_vector = vector.copy()
             minimum = e
         i += 1
@@ -223,6 +230,7 @@ def QALS(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
 def QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
     check_Q = minimization(Q)
     print(f"Dobbiamo raggiungere questo vettore: {np.atleast_2d(check_Q).T}")
+    min_Q = function_f(Q, check_Q).item()
     I = np.identity(n)
     #P = I
     p = 1
@@ -298,7 +306,12 @@ def QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
         else:
             e = e + 1
         i = i + 1
-        print(f"-- --- Valori ciclo {i}/{i_max} -- --\np = {p}, f_prime = {f_prime}, f_star = {f_star}, e = {e}, d = {d} dunque la condizione è (e+d){e+d} >= {N_max}(N_max) and (d){d} < {d_min}(d_min) e lambda = {lam}\nz = {np.atleast_2d(z_star).T}\n  = {np.atleast_2d(check_Q).T}")
+        tmp = function_f(Q, z_star)
+        print(f"-- -- Valori ciclo {i}/{i_max} -- --\np = {p}, f_prime = {f_prime}, f_star = {f_star}, p**(f_prime-f_star) = {p**(abs(f_prime)-abs(f_star))} e = {e}, d = {d} dunque la condizione è (e+d){e+d} >= {N_max}(N_max) and (d){d} < {d_min}(d_min) e lambda = {lam}\nz = {np.atleast_2d(z_star).T}\n  = {np.atleast_2d(check_Q).T}\nCon minimo di Q = {min_Q} e minimo con z_star = {tmp}")
+        #print_file(f"-- -- Valori ciclo {i}/{i_max} -- --\np = {p}, f_prime = {f_prime}, f_star = {f_star}, p**(f_prime-f_star) = {p**(abs(f_prime)-abs(f_star))} e = {e}, d = {d} dunque la condizione è (e+d){e+d} >= {N_max}(N_max) and (d){d} < {d_min}(d_min) e lambda = {lam}\nz = {np.atleast_2d(z_star).T}\n  = {np.atleast_2d(check_Q).T}")
+        if(tmp == min_Q):
+            print(f"Trovato minimo globale")
+            break
         if ((i == i_max) or ((e + d >= N_max) and (d < d_min))):
             sys.stdout.write("\033[K")
             print(f"Uscito al ciclo {i}/{i_max} ", end = '')
@@ -320,12 +333,12 @@ def main():
     """Dati """
     i_max = 3000
     q = 0.1
-    p_delta = 0.1
+    p_delta = 0.33
     eta = 0.01
     lambda_zero = 1.0
     k = 1
-    N_max = 50
-    d_min = 30
+    N_max = 30
+    d_min = 20
     n = 16
     """
     Solo per test
