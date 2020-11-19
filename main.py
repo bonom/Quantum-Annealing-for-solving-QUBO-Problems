@@ -17,14 +17,14 @@ import dwave_networkx as dnx
 import networkx as nx
 import sys
 import annealer
-
+"""
 def print_file(z):
     outF = open("Output.txt", "w")
     for line in z:
         outF.write(str(line))
         outF.write("\n")
     outF.close()
-
+"""
 def update(vector):
     dim = len(vector)
     i = 0
@@ -229,7 +229,6 @@ def QALS(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
 
 def QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
     check_Q = minimization(Q)
-    print(f"Dobbiamo raggiungere questo vettore: {np.atleast_2d(check_Q).T}")
     min_Q = function_f(Q, check_Q).item()
     I = np.identity(n)
     #P = I
@@ -286,8 +285,7 @@ def QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
             if (f_prime < f_star):
                 z_prime, z_star = z_star, z_prime
                 f_star = f_prime
-                #P_star = P
-                m_star = m
+                #P_star = P1
                 e = 0
                 d = 0
                 S = S + ((np.outer(z_prime, z_prime) - I) +
@@ -295,23 +293,18 @@ def QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
             else:
                 d = d + 1
                 #print(f"cosa è p : {type(p)} con valore {p}\ncosa è f_prime : {type(f_prime)} con valore {f_prime}\ncosa è f_star {type(f_star)} con valore {f_star}")
-                if make_decision((p**(f_prime-f_star))):
+                if make_decision(p**(f_prime-f_star)):
                     z_prime, z_star = z_star, z_prime
                     f_star = f_prime
                     #P_star = P
                     m_star = m
                     e = 0
-            # R:37 lambda diminuirebbe
-            # lam = lam - i/i_max
+            lam = min(lam, (lambda_zero/(2+i-e)))
         else:
             e = e + 1
         i = i + 1
-        tmp = function_f(Q, z_star)
-        print(f"-- -- Valori ciclo {i}/{i_max} -- --\np = {p}, f_prime = {f_prime}, f_star = {f_star}, p**(f_prime-f_star) = {p**(abs(f_prime)-abs(f_star))} e = {e}, d = {d} dunque la condizione è (e+d){e+d} >= {N_max}(N_max) and (d){d} < {d_min}(d_min) e lambda = {lam}\nz = {np.atleast_2d(z_star).T}\n  = {np.atleast_2d(check_Q).T}\nCon minimo di Q = {min_Q} e minimo con z_star = {tmp}")
-        #print_file(f"-- -- Valori ciclo {i}/{i_max} -- --\np = {p}, f_prime = {f_prime}, f_star = {f_star}, p**(f_prime-f_star) = {p**(abs(f_prime)-abs(f_star))} e = {e}, d = {d} dunque la condizione è (e+d){e+d} >= {N_max}(N_max) and (d){d} < {d_min}(d_min) e lambda = {lam}\nz = {np.atleast_2d(z_star).T}\n  = {np.atleast_2d(check_Q).T}")
-        if(tmp == min_Q):
-            print(f"Trovato minimo globale")
-            break
+        print(f"-- -- Valori ciclo {i}/{i_max} -- --\np = {p}, f_prime = {f_prime}, f_star = {f_star}, p**(f_prime-f_star) = {p**(f_prime-f_star)} e = {e}, d = {d} dunque la condizione è (e+d){e+d} >= {N_max}(N_max) and (d){d} < {d_min}(d_min) e lambda = {lam}\nz = {np.atleast_2d(z_star).T}\n  = {np.atleast_2d(check_Q).T}\nCon minimo di Q = {min_Q}")
+
         if ((i == i_max) or ((e + d >= N_max) and (d < d_min))):
             sys.stdout.write("\033[K")
             print(f"Uscito al ciclo {i}/{i_max} ", end = '')
@@ -320,10 +313,10 @@ def QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
             else:
                 print("\n")
             break
+        if(f_star == min_Q):
+            print(f"Trovato minimo globale")
+            break
         sum_time += (time.time() - start_time)
-        if(check_Q == z_star).all():
-            if input("Sono uguali, continuo o termino?") in ['t']:
-                exit(-1)
     
     print(f"Tempo medio per iterazione: {sum_time/i}")
 
@@ -333,12 +326,12 @@ def main():
     """Dati """
     i_max = 3000
     q = 0.1
-    p_delta = 0.33
+    p_delta = 0.2
     eta = 0.01
-    lambda_zero = 1.0
+    lambda_zero = 1
     k = 1
-    N_max = 30
-    d_min = 20
+    N_max = 20
+    d_min = 15
     n = 16
     """
     Solo per test
