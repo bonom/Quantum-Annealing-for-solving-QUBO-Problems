@@ -121,15 +121,34 @@ class BinaryQuadraticModel(AdjDictBQM, Sized, Iterable, Container):
        23
 
 
-class RacingBranches():
-    Runs (races) multiple workflows of type ~hybrid.core.Runnable in parallel, stopping all once the first finishes. Returns the results of all, in the specified order.
-    Examples: This example runs two branches: a classical tabu search interrupted by samples of subproblems returned from a D-Wave system.
-    RacingBranches(
-        InterruptableTabuSampler(),
-        EnergyImpactDecomposer(size=2)
-        | QPUSubproblemAutoEmbeddingSampler()
-        | SplatComposer()
-    ) | ArgMin()
+class RacingBranches(traits.NotValidated, Runnable):
+    Runs (races) multiple workflows of type :class:`~hybrid.core.Runnable`
+    in parallel, stopping all once the first finishes. Returns the results of
+    all, in the specified order.
+
+    Args:
+        *branches ([:class:`~hybrid.core.Runnable`]):
+            Comma-separated branches.
+
+    Note:
+        Each branch runnable is called with run option ``racing_context=True``,
+        so it can adapt its behaviour to the context.
+
+    Note:
+        `RacingBranches` is also available as `Race`.
+
+    Examples:
+        This example runs two branches: a classical tabu search interrupted by
+        samples of subproblems returned from a D-Wave system.
+
+        ::
+
+            RacingBranches(
+                InterruptableTabuSampler(),
+                EnergyImpactDecomposer(size=2)
+                | QPUSubproblemAutoEmbeddingSampler()
+                | SplatComposer()
+            ) | ArgMin()
 
 
 class InterruptableTabuSampler(Loop):
@@ -234,7 +253,9 @@ class QPUSubproblemAutoEmbeddingSampler(traits.SubproblemSampler, traits.SISO, R
             as keyword arguments.
 
 class SplatComposer(traits.SubsamplesComposer, traits.SISO, Runnable):
+
     A composer that overwrites current samples with subproblem samples.
+
 
 class ArgMin(traits.NotValidated, Runnable):
     Selects the best state from a sequence of :class:`~hybrid.core.States`.
@@ -263,3 +284,48 @@ class ArgMin(traits.NotValidated, Runnable):
                 | QPUSubproblemAutoEmbeddingSampler()
                 | SplatComposer()
             ) | ArgMin()
+
+@stoppable
+class LoopUntilNoImprovement(traits.NotValidated, Runnable):
+    Iterates :class:`~hybrid.core.Runnable` for up to `max_iter` times, or
+    until a state quality metric, defined by the `key` function, shows no
+    improvement for at least `convergence` number of iterations. Alternatively,
+    maximum allowed runtime can be defined with `max_time`, or a custom
+    termination Boolean function can be given with `terminate` (a predicate
+    on `key`). Loop is always terminated on :exc:`EndOfStream` raised by body
+    runnable.
+
+    Args:
+        runnable (:class:`~hybrid.core.Runnable`):
+            A runnable that's looped over.
+
+        max_iter (int/None, optional, default=None):
+            Maximum number of times the `runnable` is run, regardless of other
+            termination criteria. This is the upper bound. By default, an upper
+            bound on the number of iterations is not set.
+
+        convergence (int/None, optional, default=None):
+            Terminates upon reaching this number of iterations with unchanged
+            output. By default, convergence is not checked, so the only
+            termination criteria is defined with `max_iter`. Setting neither
+            creates an infinite loop.
+
+        max_time (float/None, optional, default=None):
+            Wall clock runtime termination criterion. Unlimited by default.
+
+        key (callable/str):
+            Best state is judged according to a metric defined with a `key`.
+            `key` can be a `callable` with a signature::
+
+                key :: (State s, Ord k) => s -> k
+
+            or a string holding a key name/path to be extracted from the input
+            state with `operator.attrgetter` method.
+
+            By default, `key == operator.attrgetter('samples.first.energy')`,
+            thus favoring states containing a sample with the minimal energy.
+
+        terminate (callable, optional, default=None):
+            Loop termination Boolean function (a predicate on `key` value)::
+
+                terminate :: (Ord k) => k -> Bool
