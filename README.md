@@ -119,3 +119,147 @@ class BinaryQuadraticModel(AdjDictBQM, Sized, Iterable, Container):
        3
        >>> bqm_k4.adj[2][3]         # Show the quadratic bias for nodes 2,3
        23
+
+
+class RacingBranches():
+    Runs (races) multiple workflows of type ~hybrid.core.Runnable in parallel, stopping all once the first finishes. Returns the results of all, in the specified order.
+    Examples: This example runs two branches: a classical tabu search interrupted by samples of subproblems returned from a D-Wave system.
+    RacingBranches(
+        InterruptableTabuSampler(),
+        EnergyImpactDecomposer(size=2)
+        | QPUSubproblemAutoEmbeddingSampler()
+        | SplatComposer()
+    ) | ArgMin()
+
+
+class InterruptableTabuSampler(Loop):
+    An interruptable tabu sampler for a binary quadratic problem.
+
+    Args:
+        num_reads (int, optional, default=1):
+            Number of states (output solutions) to read from the sampler.
+
+        tenure (int, optional):
+            Tabu tenure, which is the length of the tabu list, or number of
+            recently explored solutions kept in memory. Default is a quarter of
+            the number of problem variables up to a maximum value of 20.
+
+        timeout (int, optional, default=20):
+            Timeout for non-interruptable operation of tabu search. At the
+            completion of each loop of tabu search through its problem
+            variables, if this time interval has been exceeded, the search can
+            be stopped by an interrupt signal or expiration of the `timeout`
+            parameter.
+
+        initial_states_generator (str, 'none'/'tile'/'random', optional, default='random'):
+            Defines the expansion of input state samples into `initial_states`
+            for the Tabu search, if fewer than `num_reads` samples are
+            present. See :meth:`~tabu.TabuSampler.sample`.
+
+        max_time (float, optional, default=None):
+            Total running time in milliseconds.
+
+class EnergyImpactDecomposer(traits.ProblemDecomposer, traits.SISO, Runnable):
+    Selects a subproblem of variables maximally contributing to the problem
+    energy.
+
+    The selection currently implemented does not ensure that the variables are
+    connected in the problem graph.
+
+    Args:
+        size (int):
+            Nominal number of variables in the subproblem. Actual subproblem can
+            be smaller, depending on other parameters (e.g. `min_gain`).
+
+        min_gain (int, optional, default=-inf):
+            Minimum reduction required to BQM energy, given the current sample.
+            A variable is included in the subproblem only if inverting its
+            sample value reduces energy by at least this amount.
+
+        rolling (bool, optional, default=True):
+            If True, successive calls for the same problem (with possibly
+            different samples) produce subproblems on different variables,
+            selected by rolling down the list of all variables sorted by
+            decreasing impact.
+
+        rolling_history (float, optional, default=1.0):
+            Fraction of the problem size, as a float in range 0.0 to 1.0, that
+            should participate in the rolling selection. Once reached,
+            subproblem unrolling is reset.
+            
+        silent_rewind (bool, optional, default=True):
+            If False, raises :exc:`EndOfStream` when resetting/rewinding the
+            subproblem generator upon the reset condition for unrolling.
+
+        traversal (str, optional, default='energy'):
+            Traversal algorithm used to pick a subproblem of `size` variables.
+            Options are:
+
+            energy:
+                Use the next `size` variables in the list of variables ordered
+                by descending energy impact.
+
+            bfs:
+                Breadth-first traversal seeded by the next variable in the
+                energy impact list.
+
+            pfs:
+                Priority-first traversal seeded by variables from the energy
+                impact list, proceeding with the variable on the search boundary
+                that has the highest energy impact.
+
+class QPUSubproblemAutoEmbeddingSampler(traits.SubproblemSampler, traits.SISO, Runnable):
+    A quantum sampler for a subproblem with automated heuristic
+    minor-embedding.
+
+    Args:
+        num_reads (int, optional, default=100):
+            Number of states (output solutions) to read from the sampler.
+
+        num_retries (int, optional, default=0):
+            Number of times the sampler will retry to embed if a failure occurs.
+
+        qpu_sampler (:class:`dimod.Sampler`, optional, default=\ :class:`~dwave.system.samplers.DWaveSampler`\ ``(client="qpu")``):
+            Quantum sampler such as a D-Wave system. Subproblems that do not fit the
+            sampler's structure are minor-embedded on the fly with
+            :class:`~dwave.system.composites.AutoEmbeddingComposite`.
+
+        sampling_params (dict):
+            Dictionary of keyword arguments with values that will be used
+            on every call of the (embedding-wrapped QPU) sampler.
+
+        auto_embedding_params (dict, optional):
+            If provided, parameters are passed to the
+            :class:`~dwave.system.composites.AutoEmbeddingComposite` constructor
+            as keyword arguments.
+
+class SplatComposer(traits.SubsamplesComposer, traits.SISO, Runnable):
+    A composer that overwrites current samples with subproblem samples.
+
+class ArgMin(traits.NotValidated, Runnable):
+    Selects the best state from a sequence of :class:`~hybrid.core.States`.
+
+    Args:
+        key (callable/str):
+            Best state is judged according to a metric defined with a `key`.
+            The `key` can be a `callable` with a signature::
+
+                key :: (State s, Ord k) => s -> k
+
+            or a string holding a key name/path to be extracted from the input
+            state with `operator.attrgetter` method.
+
+            By default, `key == operator.attrgetter('samples.first.energy')`,
+            thus favoring states containing a sample with the minimal energy.
+
+    Examples:
+        This example runs two branches---a classical tabu search interrupted by
+        samples of subproblems returned from a D-Wave system--- and selects the
+        state with the minimum-energy sample::
+
+            RacingBranches(
+                InterruptableTabuSampler(),
+                EnergyImpactDecomposer(size=2)
+                | QPUSubproblemAutoEmbeddingSampler()
+                | SplatComposer()
+            ) | ArgMin()
