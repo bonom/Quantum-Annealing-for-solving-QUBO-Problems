@@ -229,7 +229,7 @@ def QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, workflow, A,
     p = 1
     Theta_one, m_one = g_faster(Q, A, np.arange(n), p)
     Theta_two, m_two = g_faster(Q, A, np.arange(n), p)
-    for kindex in range(k):
+    for kindex in range(1, k+1):
         z_one = map_back(script.solve(Theta_one,workflow[kindex]), m_one)
         z_two = map_back(script.solve(Theta_two,workflow[kindex]), m_two)
     f_one = function_f(Q, z_one).item()
@@ -265,7 +265,7 @@ def QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, workflow, A,
             p = p - ((p - p_delta)*eta)
 
         Theta_prime, m = g_faster(Q_prime, A, m_star, p)
-        for kindex in range(k):
+        for kindex in range(1, k+1):
             z_prime = map_back(script.solve(Theta_prime,workflow[kindex]), m)
         sys.stdout.write("\033[K\033[F\033[K")
         if make_decision(q):
