@@ -16,7 +16,8 @@ import time
 import dwave_networkx as dnx
 import networkx as nx
 import sys
-import annealer
+import script
+import hybrid
 """
 def print_file(z):
     outF = open("Output.txt", "w")
@@ -52,7 +53,7 @@ def minimization(matrix):
     min_vector = vector.copy()
     i = 1
     while (i < N):
-        print(f"Minimizzazione in corso...  {int((i/N)*100)}%", end="\r")
+        #print(f"Minimizzazione in corso...  {int((i/N)*100)}%", end="\r")
         update(vector)
         e = function_f(matrix, np.atleast_2d(vector).T)
         if(e < minimum):
@@ -227,7 +228,7 @@ def QALS(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
     return z_star
 
 
-def QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
+def QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, workflow, A, Q):
     check_Q = minimization(Q)
     min_Q = function_f(Q, check_Q).item()
     I = np.identity(n)
@@ -238,8 +239,8 @@ def QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
     # for i in range(k):
     #z_one = (np.transpose(P_one)).dot(minimization(Theta_one))
     #z_two = (np.transpose(P_two)).dot(minimization(Theta_two))
-    z_one = map_back(minimization(Theta_one), m_one)
-    z_two = map_back(minimization(Theta_two), m_two)
+    z_one = map_back(script.solve(Theta_one,workflow), m_one)
+    z_two = map_back(script.solve(Theta_two,workflow), m_two)
     f_one = function_f(Q, z_one).item()
     f_two = function_f(Q, z_two).item()
     if (f_one < f_two):
@@ -275,7 +276,7 @@ def QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
         Theta_prime, m = g_faster(Q_prime, A, m_star, p)
         # for i in range(k):
         #z_prime = (np.transpose(P)).dot(minimization(Theta_prime))
-        z_prime = map_back(minimization(Theta_prime), m)
+        z_prime = map_back(script.solve(Theta_prime,workflow), m)
         sys.stdout.write("\033[K\033[F\033[K")
         if make_decision(q):
             z_prime = h(z_prime, q)
@@ -303,8 +304,9 @@ def QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
         else:
             e = e + 1
         i = i + 1
-        print(f"-- -- Valori ciclo {i}/{i_max} -- --\np = {p}, f_prime = {f_prime}, f_star = {f_star}, p**(f_prime-f_star) = {p**(f_prime-f_star)} e = {e}, d = {d} dunque la condizione è (e+d){e+d} >= {N_max}(N_max) and (d){d} < {d_min}(d_min) e lambda = {lam}\nz = {np.atleast_2d(z_star).T}\n  = {np.atleast_2d(check_Q).T}\nCon minimo di Q = {min_Q}")
 
+        print(f"-- -- Valori ciclo {i}/{i_max} -- --\np = {p}, f_prime = {f_prime}, f_star = {f_star}, p**(f_prime-f_star) = {p**(f_prime-f_star)} e = {e}, d = {d} dunque la condizione è (e+d){e+d} >= {N_max}(N_max) and (d){d} < {d_min}(d_min) e lambda = {lam}\nz = {np.atleast_2d(z_star).T}\n  = {np.atleast_2d(check_Q).T}\nCon minimo di Q = {min_Q}\nCi ho messo {time.time()-start_time}\n")
+        sum_time += (time.time() - start_time)
         if ((i == i_max) or ((e + d >= N_max) and (d < d_min))):
             sys.stdout.write("\033[K")
             print(f"Uscito al ciclo {i}/{i_max} ", end = '')
@@ -316,13 +318,23 @@ def QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
         if(f_star == min_Q):
             print(f"Trovato minimo globale")
             break
-        sum_time += (time.time() - start_time)
     
     print(f"Tempo medio per iterazione: {sum_time/i}")
 
     return z_star
 
 def main():
+    """For annealer"""
+    # Define the workflow 
+    iteration = hybrid.RacingBranches(
+        hybrid.InterruptableTabuSampler(),
+        hybrid.EnergyImpactDecomposer(size=2)
+        | hybrid.QPUSubproblemAutoEmbeddingSampler()
+        | hybrid.SplatComposer()
+    ) | hybrid.ArgMin()
+    
+    workflow = hybrid.LoopUntilNoImprovement(iteration, convergence=1)
+
     """Dati """
     i_max = 3000
     q = 0.1
@@ -385,7 +397,7 @@ def main():
 
     start_time = time.time()
     print(f"Dati inseriti:\nd min = {d_min}\neta = {eta}\ni max = {i_max}\nk = {k}\nlambda zero = {lambda_zero}\nn = {n}\nN max = {N_max}\np delta = {p_delta}\nq = {q}\n")
-    print(f"\n\n -- Risultato --\n{QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, matrix_A, Q)}")
+    print(f"\n\n -- Risultato --\n{QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, workflow, matrix_A, Q)}")
     
     print("\n------------ Impiegati %0.2f secondi con l'algoritmo ------------\n\n" %
           (time.time() - start_time))

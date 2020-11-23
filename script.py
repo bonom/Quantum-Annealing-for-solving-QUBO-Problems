@@ -48,7 +48,7 @@ def matrix_to_dict(matrix):
     
     return m_t_dict
 
-def solve(Q, ret_dict = False):
+def solve(Q, workflow, ret_dict = False):
     """
         Solve QUBO problems with annealing
 
@@ -66,7 +66,6 @@ def solve(Q, ret_dict = False):
                 >>> solve(matrix)
         
     """
-    print("Start")
     # Construct the QUBO problem
     if isinstance(Q, dict):
         bqm = dimod.BinaryQuadraticModel({}, Q, 0, dimod.SPIN)
@@ -76,24 +75,23 @@ def solve(Q, ret_dict = False):
     else:
         print(f"[!] Error -- I can't understand what type is {type(Q)}, only <class 'dict'> or <class 'numpy.ndarray'> admitted")
         raise TypeError
-    
+    """ 
     # Define the workflow 
     iteration = hybrid.RacingBranches(
         hybrid.InterruptableTabuSampler(),
-        hybrid.EnergyImpactDecomposer(size=1)
+        hybrid.EnergyImpactDecomposer(size=2)
         | hybrid.QPUSubproblemAutoEmbeddingSampler()
         | hybrid.SplatComposer()
     ) | hybrid.ArgMin()
     
     workflow = hybrid.LoopUntilNoImprovement(iteration, convergence=1)
-
+    """
     # Solve the problem
-    init_state = hybrid.State.from_problem(bqm)
-    final_state = workflow.run(init_state).result()
+    final_state = workflow.run(hybrid.State.from_problem(bqm)).result()
     solution = final_state.samples.first.sample
     
-    print(f"Solution of Q = {solution}")
-    # Print results
+    #print(f"Solution of Q = {solution}")
+    #Print results
     #print("Solution: sample={.samples.first}".format(final_state))
 
     if(ret_dict):
@@ -108,13 +106,23 @@ def main(n):
     for i in range(n):
         j_max += 1
         while j < j_max:
-            Q[i,j] = np.random.randint(low=-10, high=10)
+            Q[i,j] = np.random.randint(low=-100, high=100)/10
             Q[j,i] = Q[i,j]
             j += 1
         j = 0
+    print(f"{Q}")
+    # Define the workflow 
+    iteration = hybrid.RacingBranches(
+        hybrid.InterruptableTabuSampler(),
+        hybrid.EnergyImpactDecomposer(size=2)
+        | hybrid.QPUSubproblemAutoEmbeddingSampler()
+        | hybrid.SplatComposer()
+    ) | hybrid.ArgMin()
+    
+    workflow = hybrid.LoopUntilNoImprovement(iteration, convergence=1)
     start_time = time.time()
-    solve(Q)
+    solve(Q, workflow)
     print(f"Terminato in {time.time()-start_time}")
 
 if __name__ == '__main__':
-    main(2048)
+    main(16)
