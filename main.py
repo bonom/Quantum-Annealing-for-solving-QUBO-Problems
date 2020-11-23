@@ -96,14 +96,7 @@ def g_faster(Q, A, oldperm, pr):#, P):
     vals = list(m.values())
     np.random.shuffle(vals)
     m = dict(zip(m.keys(), vals))
-    """
-    Pprime = np.empty((n, n), dtype=int)
-    for i in range(n):
-        if i in m.values():
-            Pprime[i] = P[m[i]]
-        else:
-            Pprime[i] = P[i]
-    """
+
     perm = fill(m, oldperm, n)
     inversed = inverse(perm, n)
 
@@ -236,11 +229,9 @@ def QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, workflow, A,
     p = 1
     Theta_one, m_one = g_faster(Q, A, np.arange(n), p)
     Theta_two, m_two = g_faster(Q, A, np.arange(n), p)
-    # for i in range(k):
-    #z_one = (np.transpose(P_one)).dot(minimization(Theta_one))
-    #z_two = (np.transpose(P_two)).dot(minimization(Theta_two))
-    z_one = map_back(script.solve(Theta_one,workflow), m_one)
-    z_two = map_back(script.solve(Theta_two,workflow), m_two)
+    for kindex in range(k):
+        z_one = map_back(script.solve(Theta_one,workflow[kindex]), m_one)
+        z_two = map_back(script.solve(Theta_two,workflow[kindex]), m_two)
     f_one = function_f(Q, z_one).item()
     f_two = function_f(Q, z_two).item()
     if (f_one < f_two):
@@ -274,9 +265,8 @@ def QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, workflow, A,
             p = p - ((p - p_delta)*eta)
 
         Theta_prime, m = g_faster(Q_prime, A, m_star, p)
-        # for i in range(k):
-        #z_prime = (np.transpose(P)).dot(minimization(Theta_prime))
-        z_prime = map_back(script.solve(Theta_prime,workflow), m)
+        for kindex in range(k):
+            z_prime = map_back(script.solve(Theta_prime,workflow[kindex]), m)
         sys.stdout.write("\033[K\033[F\033[K")
         if make_decision(q):
             z_prime = h(z_prime, q)
@@ -324,17 +314,6 @@ def QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, workflow, A,
     return z_star
 
 def main():
-    """For annealer"""
-    # Define the workflow 
-    iteration = hybrid.RacingBranches(
-        hybrid.InterruptableTabuSampler(),
-        hybrid.EnergyImpactDecomposer(size=2)
-        | hybrid.QPUSubproblemAutoEmbeddingSampler()
-        | hybrid.SplatComposer()
-    ) | hybrid.ArgMin()
-    
-    workflow = hybrid.LoopUntilNoImprovement(iteration, convergence=1)
-
     """Dati """
     i_max = 3000
     q = 0.1
@@ -345,6 +324,22 @@ def main():
     N_max = 20
     d_min = 15
     n = 16
+
+    """For annealer"""
+    workflow = list()
+    for index in range(1, k+1):
+        # Define the workflow 
+        print(f"Sto creando il workflow pr l'annealer... {int((index/k)*100)}%", end='\r')
+        iteration = hybrid.RacingBranches(
+            hybrid.InterruptableTabuSampler(),
+            hybrid.EnergyImpactDecomposer(size=index)
+            | hybrid.QPUSubproblemAutoEmbeddingSampler()
+            | hybrid.SplatComposer()
+        ) | hybrid.ArgMin()
+
+        workflow.append(hybrid.LoopUntilNoImprovement(iteration, convergence=1))
+
+    
     """
     Solo per test
     """
@@ -354,8 +349,8 @@ def main():
     """MAIN"""
     print(f"Creo Q ...", end=' ')
     
-    j_max = 0
-    j = 0
+    #j_max = 0
+    #j = 0
     #Q = np.zeros((n, n))
     #for i in range(n):
     #    j_max += 1

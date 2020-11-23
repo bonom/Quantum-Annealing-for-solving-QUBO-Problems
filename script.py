@@ -1,6 +1,5 @@
 import dimod
 import hybrid
-import time
 import numpy as np
 
 def dict_to_vector(dic):
@@ -120,9 +119,8 @@ def main(n):
     ) | hybrid.ArgMin()
     
     workflow = hybrid.LoopUntilNoImprovement(iteration, convergence=1)
-    start_time = time.time()
+    
     solve(Q, workflow)
-    print(f"Terminato in {time.time()-start_time}")
 
 if __name__ == '__main__':
     main(16)
