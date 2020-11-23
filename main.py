@@ -53,7 +53,7 @@ def minimization(matrix):
     min_vector = vector.copy()
     i = 1
     while (i < N):
-        #print(f"Minimizzazione in corso...  {int((i/N)*100)}%", end="\r")
+        print(f"Minimizzazione in corso...  {int((i/N)*100)}%", end="\r")
         update(vector)
         e = function_f(matrix, np.atleast_2d(vector).T)
         if(e < minimum):
@@ -222,14 +222,14 @@ def QALS(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, A, Q):
 
 
 def QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, workflow, A, Q):
-    check_Q = minimization(Q)
+    check_Q = script.solve(Q,workflow[len(workflow)-1])
     min_Q = function_f(Q, check_Q).item()
     I = np.identity(n)
     #P = I
     p = 1
     Theta_one, m_one = g_faster(Q, A, np.arange(n), p)
     Theta_two, m_two = g_faster(Q, A, np.arange(n), p)
-    for kindex in range(1, k+1):
+    for kindex in range(k):
         z_one = map_back(script.solve(Theta_one,workflow[kindex]), m_one)
         z_two = map_back(script.solve(Theta_two,workflow[kindex]), m_two)
     f_one = function_f(Q, z_one).item()
@@ -265,7 +265,7 @@ def QALS_g(d_min, eta, i_max, k, lambda_zero, n, N_max, p_delta, q, workflow, A,
             p = p - ((p - p_delta)*eta)
 
         Theta_prime, m = g_faster(Q_prime, A, m_star, p)
-        for kindex in range(1, k+1):
+        for kindex in range(k):
             z_prime = map_back(script.solve(Theta_prime,workflow[kindex]), m)
         sys.stdout.write("\033[K\033[F\033[K")
         if make_decision(q):
@@ -323,13 +323,13 @@ def main():
     k = 1
     N_max = 20
     d_min = 15
-    n = 16
+    n = 2048
 
     """For annealer"""
     workflow = list()
-    for index in range(1, k+1):
+    for index in range(1, k+2):
         # Define the workflow 
-        print(f"Sto creando il workflow pr l'annealer... {int((index/k)*100)}%", end='\r')
+        print(f"Sto creando il workflow pr l'annealer... {int((index/k+2)*100)}%", end='\r')
         iteration = hybrid.RacingBranches(
             hybrid.InterruptableTabuSampler(),
             hybrid.EnergyImpactDecomposer(size=index)
@@ -339,27 +339,29 @@ def main():
 
         workflow.append(hybrid.LoopUntilNoImprovement(iteration, convergence=1))
 
-    
     """
     Solo per test
     """
-    rows = 1
-    columns = 2
+    rows = 16
+    columns = 16
 
     """MAIN"""
     print(f"Creo Q ...", end=' ')
     
-    #j_max = 0
-    #j = 0
-    #Q = np.zeros((n, n))
-    #for i in range(n):
-    #    j_max += 1
-    #    while j < j_max:
-    #        Q[i][j] = np.random.randint(low=-10, high=10)
-    #        Q[j][i] = Q[i][j]
-    #        j += 1
-    #    j = 0
-
+    j_max = 0
+    j = 0
+    Q = np.zeros((n, n))
+    for i in range(n):
+        j_max += 1
+        while j < j_max:
+            if j == i:
+                Q[i][j] = i
+            else:
+                Q[i][j] = np.random.randint(low=-100, high=100)/10
+                Q[j][i] = Q[i][j]
+            j += 1
+        j = 0
+    """
     Q = np.matrix([
          [0,  0.2,  9.7,  9.5, -4.6, -8.2,  4.7, -3.4, -3.5,    6,  0.2,  6.3,  8.6,  8.7,  7.8,  3.9],
        [0.2,    1, -0.1, -7.1, -5.5,  9.3,  6.8, -7.7,  6.7,   -3, -3.5, -6.9,    9,  4.6, -6.2, -0.4],
@@ -377,7 +379,7 @@ def main():
        [8.7,  4.6,  4.8,  9.1,   10, -6.4, -8.8,  4.1, -1.2,  9.7,    6,    4, -9.9,   13,  5.9,  9.8],
        [7.8, -6.2,    2,  6.4,  0.8,    9,  6.9,  3.8, -8.4,  6.7,  9.3,  8.3,  1.2,  5.9,   14, -9.8],
        [3.9, -0.4, -7.7,  6.7,  2.2, -5.5,  1.2, -9.5,  5.2,  9.9,    7,  0.6, -2.1,  9.8, -9.8,   15]])
-
+    """
     print(f"FATTO!\n--------------- Q matrice {Q.shape} ---------------\n{Q}")
     print(f"\nCreo A ...", end=' ')
     

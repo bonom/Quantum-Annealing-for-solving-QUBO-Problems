@@ -65,6 +65,7 @@ def solve(Q, workflow, ret_dict = False):
                 >>> solve(matrix)
         
     """
+    
     # Construct the QUBO problem
     if isinstance(Q, dict):
         bqm = dimod.BinaryQuadraticModel({}, Q, 0, dimod.SPIN)
