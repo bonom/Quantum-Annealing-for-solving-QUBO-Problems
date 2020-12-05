@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="QA4QUBO-BONOM", # Replace with your own username
-    version="0.0.1",
+    version="0.1.0",
     author="Andrea Bonomi",
     author_email="andrea.bonomi-2@studenti.unitn.it",
     description="Quantum Annealing for solving QUBO Problems",
