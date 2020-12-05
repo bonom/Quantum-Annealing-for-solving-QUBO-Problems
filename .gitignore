@@ -1,5 +1,7 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
+QA4QUBO/__pycache__/
+QA4QUBO/tests/__pycache__
 *.py[cod]
 *$py.class
 
@@ -128,9 +130,8 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-Matrix_Optimization.py
-test.py
-start.sh
-d_wave.py
-graph.py
-.txt
+setup.sh
+bin/
+rnseed.cpp
+__OLD__/
+docs/
