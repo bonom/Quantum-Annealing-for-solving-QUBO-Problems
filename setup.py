@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="QA4QUBO-BONOM", # Replace with your own username
+    name="QA4QUBO-BONOM",
     version="0.1.0",
     author="Andrea Bonomi",
     author_email="andrea.bonomi-2@studenti.unitn.it",
