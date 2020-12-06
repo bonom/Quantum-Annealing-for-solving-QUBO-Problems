@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import random
 from .get_from_file import elements
 

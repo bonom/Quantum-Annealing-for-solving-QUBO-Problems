@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import random as rn
 
 def generate_S(n):

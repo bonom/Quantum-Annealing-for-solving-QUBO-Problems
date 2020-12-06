@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 class elements:
     i = 0
     f = 0

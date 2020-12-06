@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import time
 import random
 import numpy as np
@@ -144,7 +146,7 @@ def sim_ann(p, f_prime, f_star):
         return np.exp(-(f_prime - f_star)/T)
     return 0
 
-def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q):
+def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, make_decision, shuffle_vector):
     check_Q = minimization_Q(Q)
     min_Q = function_f(Q, check_Q).item()
     I = np.identity(n)
@@ -215,7 +217,7 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q):
         try:
             print(f"-- -- Valori ciclo {i}/{i_max} -- --\np = {p}, f_prime = {f_prime}, f_star = {f_star}, p**(f_prime-f_star) = {p**(f_prime-f_star)} e = {e}, d = {d} dunque la condizione è (e+d){e+d} >= {N_max}(N_max) and (d){d} < {d_min}(d_min) e lambda = {lam}\nz = {np.atleast_2d(z_star).T}\n  = {np.atleast_2d(check_Q).T}\nCon minimo di Q = {min_Q}\nCi ho messo {time.time()-start_time} secondi\n")
         except:
-            print(f"-- -- Ciclo {i}/{i_max} -- --\n\nCi ho messo {time.time()-start_time} secondi\n")
+            print(f"-- -- Ciclo {i}/{i_max} -- --\n\nNon ci sono variazioni\n\nCi ho messo {time.time()-start_time} secondi\n")
         
         sum_time = sum_time + (time.time() - start_time)
         if ((i == i_max) or ((e + d >= N_max) and (d < d_min))):
@@ -226,10 +228,13 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q):
                 print("\n")
             break
         
-        if(f_prime == min_Q):
-            print(f"Found minimum of Q ({min_Q}) equals to f* ({f_star})")
-            if input("Should I continue? ['C','c','y','Y','1'] for yes: \n") not in ['C','c','y','Y','1']:
-                break
+        try:
+            if(f_prime == min_Q):
+                print(f"Found minimum of Q ({min_Q}) equals to f* ({f_star})")
+                if input("Should I continue? ['C','c','y','Y','1'] for yes: \n") not in ['C','c','y','Y','1']:
+                    break
+        except:
+            pass
             
         
         i = i + 1

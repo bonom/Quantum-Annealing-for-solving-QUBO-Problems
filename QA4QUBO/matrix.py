@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import dwave_networkx as dnx
 
 def generate_QUBO_problem(S):
