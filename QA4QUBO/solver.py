@@ -130,7 +130,7 @@ def g(Q, A, oldperm, pr):
     for row, col in A:
         k = inversed[row]
         l = inversed[col]
-        Theta[row][col] = Q[k][l]#Q.item((k, l))
+        Theta[row][col] = Q[k][l]
     return Theta, perm
 
 def h(vect, pr): 
