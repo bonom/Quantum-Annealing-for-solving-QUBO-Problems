@@ -231,11 +231,13 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, make
         try:
             if(f_prime == min_Q):
                 print(f"Found minimum of Q ({min_Q}) equals to f* ({f_star})")
-                if input("Should I continue? ['C','c','y','Y','1'] for yes: \n") not in ['C','c','y','Y','1']:
+                try:
+                    if input("Should I continue? ['C','c','y','Y','1'] for yes: \n") not in ['C','c','y','Y','1']:
+                        break
+                except KeyboardInterrupt:
                     break
         except:
             pass
-            
         
         i = i + 1
     print(f"Tempo medio per iterazione: {sum_time/i}")
