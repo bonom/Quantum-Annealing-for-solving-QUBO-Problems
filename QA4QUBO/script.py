@@ -1,7 +1,8 @@
 import dimod
 import hybrid
 import numpy as np
-from dwave.system import DWaveSampler
+from dwave.system.samplers import DWaveSampler
+from dwave.system.composites import EmbeddingComposite
 
 def dict_to_vector(dic):
     """
@@ -16,9 +17,9 @@ def dict_to_vector(dic):
 
     """
     n = len(dic)
-    vector = np.zeros((n))
+    vector = list()
     for i in range(n):
-        vector[i] = dic[i]
+        vector.append(dic[i])
 
     return np.atleast_2d(vector).T
 
@@ -48,22 +49,21 @@ def matrix_to_dict(matrix):
     
     return m_t_dict
 
-def solver(Q):
-    # Construct the QUBO problem
-    if isinstance(Q, dict):
-        bqm = dimod.BinaryQuadraticModel({}, Q, 0, dimod.SPIN)
-    elif isinstance(Q, np.ndarray):
-        new_Q = matrix_to_dict(Q)
-        bqm = dimod.BinaryQuadraticModel({}, new_Q, 0, dimod.SPIN)
+def annealer(theta):
+    
+    if isinstance(theta, dict):
+        pass
+    elif isinstance(theta, np.ndarray) or isinstance(theta, list):
+        theta = matrix_to_dict(theta)
     else:
-        print(f"[!] Error -- I can't understand what type is {type(Q)}, only <class 'dict'> or <class 'numpy.ndarray'> admitted")
+        print(f"[!] Error -- I can't understand what type is {type(theta)}, only <class 'dict'> or <class 'numpy.ndarray'> admitted")
         raise TypeError
-
+    
     sampler = DWaveSampler()
+    sampler = EmbeddingComposite(sampler)
+    response = sampler.sample_qubo(theta, num_reads=1)
 
-    qubit_a = sampler.nodelist[0]
-    qubit_b = next(iter(sampler.adjacency[qubit_a]))
-    sampleset = sampler.sample_ising({qubit_a: -1, qubit_b: 1},{},num_reads=100)
+    return dict_to_vector(response.first.sample)
 
 
 
@@ -121,18 +121,16 @@ def hybrid_solve(Q, workflow, ret_dict = False):
 
 
 def main(n):
-    j_max = 0
-    j = 0
-    Q = dict()
+    ls = list()
     for i in range(n):
-        j_max += 1
-        while j < j_max:
-            Q[i,j] = np.random.randint(low=-100, high=100)/10
-            Q[j,i] = Q[i,j]
-            j += 1
-        j = 0
-    print(f"{Q}")
+        ls.append(np.random.randint(low=-100, high=100)/10)
+    Q = generate_QUBO_problem(ls)
+    if n <= 16:
+        print(f"{Q}")
+    else:
+        print(" -- New Q created! --")
     # Define the workflow 
+    """
     iteration = hybrid.RacingBranches(
         hybrid.InterruptableTabuSampler(),
         hybrid.EnergyImpactDecomposer(size=2)
@@ -141,8 +139,12 @@ def main(n):
     ) | hybrid.ArgMin()
     
     workflow = hybrid.LoopUntilNoImprovement(iteration, convergence=1)
-    
-    solve(Q, workflow)
+    """
+    import time
+    time_s = time.time()
+    print(annealer(Q))
+    print(f"{time.time() - time_s} secondi")
 
 if __name__ == '__main__':
-    main(16)
+    from matrix import generate_QUBO_problem
+    main(512)

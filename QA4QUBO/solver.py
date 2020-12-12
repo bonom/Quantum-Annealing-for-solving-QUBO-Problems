@@ -5,6 +5,7 @@ import random
 import numpy as np
 from scipy import sparse
 from QA4QUBO.functions import shuffle_vector, make_decision
+from QA4QUBO.script import annealer
 
 def function_f(Q, x):
     return ((np.atleast_2d(x).T).dot(Q)).dot(x)
@@ -154,9 +155,12 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, make
     Theta_one, m_one = g(Q, A, np.arange(n), p)
     Theta_two, m_two = g(Q, A, np.arange(n), p)
     
-    z_one = map_back(minimization(Theta_one), m_one)
-    z_two = map_back(minimization(Theta_two), m_two)
-    
+    #z_one = map_back(minimization(Theta_one), m_one)
+    #z_two = map_back(minimization(Theta_two), m_two)
+
+    z_one = map_back(annealer(Theta_one), m_one)
+    z_two = map_back(annealer(Theta_two), m_two)
+
     f_one = function_f(Q, z_one).item()
     f_two = function_f(Q, z_two).item()
     if (f_one < f_two):
@@ -188,12 +192,13 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, make
 
         Theta_prime, m = g(Q_prime, A, m_star, p)
 
-        z_prime = map_back(minimization(Theta_prime), m)
+        #z_prime = map_back(minimization(Theta_prime), m)
+        z_prime = map_back(annealer(Theta_prime), m)
 
         if make_decision(q):
             z_prime = h(z_prime, q)
 
-        if (z_prime != z_star):
+        if (z_prime == z_star) == False:
             f_prime = function_f(Q, z_prime).item()
             if (f_prime < f_star):
                 z_prime, z_star = z_star, z_prime
