@@ -1,5 +1,7 @@
 #!/bin/bash
 
+pip3 install -r requirements.txt | grep "not installed" 
+
 if [ -z "$1" ]
 then 
     echo -ne "Insert value of n : "
