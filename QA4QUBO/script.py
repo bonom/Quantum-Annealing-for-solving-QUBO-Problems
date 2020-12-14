@@ -65,61 +65,6 @@ def annealer(theta):
 
     return dict_to_vector(response.first.sample)
 
-
-
-
-def hybrid_solve(Q, workflow, ret_dict = False):
-    """
-        Solve QUBO problems with annealing
-
-        Args:
-            Q:
-                A matrix Q to minimize (can be <class 'numpy.ndarray'> or <class 'dict'>)
-
-            ret dict:
-                Boolean variable (default is False) that decides if return a <class 'dict'> (True) or a <class 'numpy.ndarray'> (False)
-
-        Returns:
-                Minimization <class 'dict'> or <class 'numpy.ndarray'>
-
-        Examples:
-                >>> solve(matrix)
-        
-    """
-    
-    # Construct the QUBO problem
-    if isinstance(Q, dict):
-        bqm = dimod.BinaryQuadraticModel({}, Q, 0, dimod.SPIN)
-    elif isinstance(Q, np.ndarray):
-        new_Q = matrix_to_dict(Q)
-        bqm = dimod.BinaryQuadraticModel({}, new_Q, 0, dimod.SPIN)
-    else:
-        print(f"[!] Error -- I can't understand what type is {type(Q)}, only <class 'dict'> or <class 'numpy.ndarray'> admitted")
-        raise TypeError
-    """ 
-    # Define the workflow 
-    iteration = hybrid.RacingBranches(
-        hybrid.InterruptableTabuSampler(),
-        hybrid.EnergyImpactDecomposer(size=2)
-        | hybrid.QPUSubproblemAutoEmbeddingSampler()
-        | hybrid.SplatComposer()
-    ) | hybrid.ArgMin()
-    
-    workflow = hybrid.LoopUntilNoImprovement(iteration, convergence=1)
-    """
-    # Solve the problem
-    final_state = workflow.run(hybrid.State.from_problem(bqm)).result()
-    solution = final_state.samples.first.sample
-    
-    #print(f"Solution of Q = {solution}")
-    #Print results
-    #print("Solution: sample={.samples.first}".format(final_state))
-
-    if(ret_dict):
-        return solution
-    return dict_to_vector(solution)
-
-
 def main(n):
     ls = list()
     for i in range(n):
@@ -147,4 +92,4 @@ def main(n):
 
 if __name__ == '__main__':
     from matrix import generate_QUBO_problem
-    main(512)
+    main(8)

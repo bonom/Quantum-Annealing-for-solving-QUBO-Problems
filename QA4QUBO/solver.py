@@ -158,8 +158,9 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, make
     #z_one = map_back(minimization(Theta_one), m_one)
     #z_two = map_back(minimization(Theta_two), m_two)
 
-    z_one = map_back(annealer(Theta_one), m_one)
-    z_two = map_back(annealer(Theta_two), m_two)
+    for kindex in range(k):
+        z_one = map_back(annealer(Theta_one), m_one)
+        z_two = map_back(annealer(Theta_two), m_two)
 
     f_one = function_f(Q, z_one).item()
     f_two = function_f(Q, z_two).item()
@@ -193,7 +194,8 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, make
         Theta_prime, m = g(Q_prime, A, m_star, p)
 
         #z_prime = map_back(minimization(Theta_prime), m)
-        z_prime = map_back(annealer(Theta_prime), m)
+        for kindex in range(k):
+            z_prime = map_back(annealer(Theta_prime), m)
 
         if make_decision(q):
             z_prime = h(z_prime, q)
