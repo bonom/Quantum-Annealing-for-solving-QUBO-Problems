@@ -91,5 +91,5 @@ def main(n):
     print(f"{time.time() - time_s} secondi")
 
 if __name__ == '__main__':
-    from matrix import generate_QUBO_problem
+    from QA4QUBO.matrix import generate_QUBO_problem
     main(8)
