@@ -8,4 +8,4 @@ else
     n=$1
 fi
 
-python3 main.py $n
+python3 -B main.py $n
