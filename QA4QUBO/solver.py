@@ -40,22 +40,6 @@ def update(vector):
     if(i < dim):
         vector[i] = 1
 
-def minimization_Q(matrix):
-    n = len(matrix)
-    N = 2**n
-    vector = [-1 for i in range(n)]
-    minimum = function_f(matrix, np.atleast_2d(vector).T)
-    min_vector = vector.copy()
-    i = 1
-    while (i < N):
-        update(vector)
-        e = function_f(matrix, np.atleast_2d(vector).T)
-        if(e < minimum):
-            min_vector = vector.copy()
-            minimum = e
-        i += 1
-    return np.atleast_2d(min_vector).T
-
 def minimization(matrix):
     n = len(matrix)
     matrix = sparse.csr_matrix(matrix)
@@ -148,8 +132,7 @@ def sim_ann(p, f_prime, f_star):
     return 0
 
 def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, make_decision, shuffle_vector):
-    check_Q = minimization_Q(Q)
-    min_Q = function_f(Q, check_Q).item()
+    print("\n---------- Started Algorithm ----------")
     I = np.identity(n)
     p = 1
     Theta_one, m_one = g(Q, A, np.arange(n), p)
@@ -222,7 +205,7 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, make
 
         # debug print
         try:
-            print(f"-- -- Valori ciclo {i}/{i_max} -- --\np = {p}, f_prime = {f_prime}, f_star = {f_star}, p**(f_prime-f_star) = {p**(f_prime-f_star)} e = {e}, d = {d} dunque la condizione è (e+d){e+d} >= {N_max}(N_max) and (d){d} < {d_min}(d_min) e lambda = {lam}\nz = {np.atleast_2d(z_star).T}\n  = {np.atleast_2d(check_Q).T}\nCon minimo di Q = {min_Q}\nCi ho messo {time.time()-start_time} secondi\n")
+            print(f"-- -- Valori ciclo {i}/{i_max} -- --\np = {p}, f_prime = {f_prime}, f_star = {f_star}, e = {e}, d = {d}, Nmax = {N_max}, dmin = {d_min} e lambda = {lam}\nz = {np.atleast_2d(z_star).T}\nCi ho messo {time.time()-start_time} secondi\n")
         except:
             print(f"-- -- Ciclo {i}/{i_max} -- --\n\nNon ci sono variazioni\n\nCi ho messo {time.time()-start_time} secondi\n")
         
@@ -234,17 +217,6 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, make
             else:
                 print("\n")
             break
-        
-        try:
-            if(f_prime == min_Q):
-                print(f"Found minimum of Q ({min_Q}) equals to f* ({f_star})")
-                try:
-                    if input("Should I continue? ['C','c','y','Y','1'] for yes: \n") not in ['C','c','y','Y','1']:
-                        break
-                except KeyboardInterrupt:
-                    break
-        except:
-            pass
         
         i = i + 1
     print(f"Tempo medio per iterazione: {sum_time/i}")

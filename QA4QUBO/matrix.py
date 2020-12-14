@@ -24,7 +24,7 @@ def generate_QUBO_problem(S):
                 QUBO[col][row] = QUBO[row][col]
             col += 1
         col = 0
-    return QUBO
+    return QUBO, c
 
 def generate_QUBO_problem_2(S):
     """
