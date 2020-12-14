@@ -17,15 +17,15 @@ def main(_n):
 
     if _n == 8:
         S = [25, 7, 13, 31, 42,17, 21,10]
-        _A = matrix.generate_chimera(1, 1)
+        _A = matrix.generate_chimera(8)
     elif _n == 16:
         S = [1,2,3,4,5,6,7,8,9,8,7,6,6,5,4,5]
-        _A = matrix.generate_chimera(1, 2)
+        _A = matrix.generate_chimera(16)
     else:
         S = vector.generate_S(_n)
-        row = int(input(f"Number of rows for chimera graph? (#nodes = {_n}): "))
-        col = int(input(f"Number of columns for chimera graph? (#nodes = {_n}): "))
-        _A = matrix.generate_chimera(row,col)
+        #row = int(input(f"Number of rows for chimera graph? (#nodes = {_n}): "))
+        #col = int(input(f"Number of columns for chimera graph? (#nodes = {_n}): "))
+        _A = matrix.generate_chimera(_n)
 
     _Q = matrix.generate_QUBO_problem(S)
     print(" --- Problem start ---")

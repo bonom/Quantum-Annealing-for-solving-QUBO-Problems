@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import dwave_networkx as dnx
+import networkx as nx
 
 def generate_QUBO_problem(S):
     """
@@ -25,22 +26,18 @@ def generate_QUBO_problem(S):
         col = 0
     return QUBO
 
-def generate_chimera(r, c):
-    """
-        Sparse matrix chimera graph
-    """
-    G = dnx.chimera_graph(r, c)
-    tmp = {}
-    for n in G:
-        tmp[n] = [nbr for nbr in G.neighbors(n) if nbr in G]
-    n = len(tmp)
-    rows = list()
-    cols = list()
+def generate_chimera(n):
+    G = dnx.chimera_graph(16)
+    tmp = nx.to_dict_of_lists(G)
+    rows = []
+    cols = []
     for i in range(n):
         rows.append(i)
         cols.append(i)
-        for element in tmp[i]:
-            rows.append(i)
-            cols.append(element)
+        for j in tmp[i]:
+            if(j < n):
+                rows.append(i)
+                cols.append(j)
+
     return list(zip(rows, cols))
 
