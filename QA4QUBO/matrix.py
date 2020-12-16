@@ -36,33 +36,15 @@ def generate_QAP_problem(file):
     P = [[0 for i in range(n)] for j in range(n)]
     L = [[0 for i in range(n)] for j in range(n)]
     for i in range(1, n):
-        try:
-            row_s = tmp[i].split(' ')
-        except:
-            pass
-        try:
-            row_s[len(row_s)-1] = row_s[len(row_s)-1].rstrip("\n")
-        except:
-            pass
-        try:
-            row = [int(element) for element in row_s]
-        except:
-            pass
+        row_s = tmp[i].split(' ')
+        row_s[len(row_s)-1] = row_s[len(row_s)-1].rstrip("\n")
+        row = [int(element) for element in row_s]
         P[i] = row
 
     for i in range(1, n):
-        try:
-            row_s = tmp[i].split(' ')
-        except:
-            pass
-        try:
-            row_s[len(row_s)-1] = row_s[len(row_s)-1].rstrip("\n")
-        except:
-            pass
-        try:
-            row = [int(element) for element in row_s]
-        except:
-            pass
+        row_s = tmp[i].split(' ')
+        row_s[len(row_s)-1] = row_s[len(row_s)-1].rstrip("\n")
+        row = [int(element) for element in row_s]
         L[i] = row
 
     return qubo_qap(P,L)
