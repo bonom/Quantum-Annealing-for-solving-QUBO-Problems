@@ -1,8 +1,8 @@
 import dimod
 import hybrid
 import numpy as np
-#from dwave.system.samplers import DWaveSampler
-#from dwave.system.composites import EmbeddingComposite
+from dwave.system.samplers import DWaveSampler
+from dwave.system.composites import EmbeddingComposite
 
 def dict_to_vector(dic):
     """
