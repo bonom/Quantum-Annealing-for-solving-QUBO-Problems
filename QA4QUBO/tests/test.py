@@ -32,9 +32,9 @@ def main():
     except:
         pass
     
-    #for row in _Q:
-    #    print(f"{row}")
-    #print(f"\n{_A}\n ---------------------")
+    for row in _Q:
+        print(f"{row}")
+    print(f"\n{_A}\n ---------------------")
 
     z = solver.solve(d_min = 30, eta = 0.01, i_max = 3000, k = 1, lambda_zero = 1.0, n = _n, N = 8, N_max = 50, p_delta = 0.2, q = 0.1, A = _A, Q = _Q, make_decision = make_decision, shuffle_vector = shuffle_vector)
     min_z = solver.function_f(_Q,z)

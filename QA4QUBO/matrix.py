@@ -78,7 +78,10 @@ def generate_chimera(n):
     return list(zip(rows, cols))
 
 def generate_pegasus(n):
+    import matplotlib.pyplot as plt
     G = dnx.pegasus_graph(16, fabric_only=False)
+    dnx.draw_pegasus(G, with_labels = True, node_size = 500, node_color = "Yellow")
+    plt.show()
     
     tmp = nx.to_dict_of_lists(G)
     rows = []
@@ -92,3 +95,6 @@ def generate_pegasus(n):
                 cols.append(j)
 
     return list(zip(rows, cols))
+
+if __name__ == "__main__":
+    generate_pegasus(8)

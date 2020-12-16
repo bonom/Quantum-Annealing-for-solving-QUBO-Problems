@@ -143,7 +143,9 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, make
 
     for kindex in range(k):
         z_one = map_back(annealer(Theta_one), m_one)
+        print("First z created")
         z_two = map_back(annealer(Theta_two), m_two)
+        print("Second z created")
 
     f_one = function_f(Q, z_one).item()
     f_two = function_f(Q, z_two).item()

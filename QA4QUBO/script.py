@@ -61,9 +61,9 @@ def annealer(theta):
     
     sampler = DWaveSampler()
     sampler = EmbeddingComposite(sampler)
-    response = sampler.sample_qubo(theta, num_reads=1)
+    response = sampler.sample_qubo(theta, num_reads=4)
 
-    return dict_to_vector(response.first.sample)
+    return np.atleast_2d(list(response.first.sample.values())).T
 
 def main(n):
     ls = list()
