@@ -35,18 +35,19 @@ def generate_QAP_problem(file):
         
     P = [[0 for i in range(n)] for j in range(n)]
     L = [[0 for i in range(n)] for j in range(n)]
-    for i in range(1, n):
+
+    for i in range(n):
         row_s = tmp[i].split(' ')
         row_s[len(row_s)-1] = row_s[len(row_s)-1].rstrip("\n")
         row = [int(element) for element in row_s]
         P[i] = row
-
-    for i in range(1, n):
-        row_s = tmp[i].split(' ')
+        
+    for i in range(n):
+        row_s = tmp[i+n].split(' ')
         row_s[len(row_s)-1] = row_s[len(row_s)-1].rstrip("\n")
         row = [int(element) for element in row_s]
         L[i] = row
-
+        
     return qubo_qap(P,L)
 
 def qubo_qap(flow: np.ndarray, distance: np.ndarray, penalty=10.):
