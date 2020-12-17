@@ -215,7 +215,7 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q):
         try:
             print(f"-- -- Valori ciclo {i}/{i_max} -- --\np = {p}, f_prime = {f_prime}, f_star = {f_star}, e = {e}, d = {d}, Nmax = {N_max}, dmin = {d_min} e lambda = {lam}\nz = {np.atleast_2d(z_star).T}\nCi ho messo {time.time()-start_time} secondi\n")
         except:
-            print(f"-- -- Ciclo {i}/{i_max} -- --\n\nNon ci sono variazioni\n\nCi ho messo {time.time()-start_time} secondi\n")
+            print(f"-- -- Ciclo {i}/{i_max} -- --\n\nNon ci sono variazioni di f, z\ne = {e}, d = {d}, Nmax = {N_max} e dmin = {d_min}\nCi ho messo {time.time()-start_time} secondi\n")
         
         sum_time = sum_time + (time.time() - start_time)
         if ((i == i_max) or ((e + d >= N_max) and (d < d_min))):
