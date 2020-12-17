@@ -3,21 +3,46 @@
 from QA4QUBO import matrix, vector, solver
 from os import listdir
 from os.path import isfile, join
-onlyfiles = [f for f in listdir("QA4QUBO/tests/") if isfile(join("QA4QUBO/tests/", f))]
+qap = [f for f in listdir("QA4QUBO/tests/") if isfile(join("QA4QUBO/tests/", f))]
+npp = [f for f in listdir("QA4QUBO/npp/") if isfile(join("QA4QUBO/npp/", f))]
 
 def getproblem():
     elements = list()
     i = 0
-    for element in onlyfiles:
+    for element in qap:
         elements.append(element)
         element = element[:-4]
         print(f"Write {i} for the problem {element}")
         i += 1
     
     problem = int(input("Which problem do you want to select? "))
-    DIR = "QA4QUBO/tests/"+onlyfiles[problem]
+    DIR = "QA4QUBO/tests/"+qap[problem]
     return DIR
 
+def getS():
+    elements = list()
+    i = 0
+    for element in npp:
+        elements.append(element)
+        element = element[:-4]
+        print(f"Write {i} for the problem {element}")
+        i += 1
+    
+    problem = int(input("Which problem do you want to select? "))
+    DIR = "QA4QUBO/npp/"+npp[problem]
+    return DIR
+
+def generateS():
+    S = list()
+    DIR = getS()
+    with open(DIR) as file:
+        n = int(file.read())
+        for i in range(n):
+            S.append(file.read())
+
+    print(f" N = {n}\n{S}")
+    input()
+    return S, n
 
 def main():
     
@@ -30,9 +55,7 @@ def main():
             _n = len(_Q)
     else:
         QAP = False
-        print("Will generate a number partitioning problem")
-        _n = int(input("Insert value of n: "))
-        S = vector.generate_S(_n)
+        S, _n = generateS()
         _Q, c = matrix.generate_QUBO_problem(S)
     
     

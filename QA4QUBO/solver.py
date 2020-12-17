@@ -5,6 +5,8 @@ import random
 import numpy as np
 from scipy import sparse
 from QA4QUBO.script import annealer
+from dwave.system.samplers import DWaveSampler
+from dwave.system.composites import EmbeddingComposite
 
 def function_f(Q, x):
     return ((np.atleast_2d(x).T).dot(Q)).dot(x)
@@ -141,14 +143,16 @@ def sim_ann(p, f_prime, f_star):
 
 def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q):
     print("\n---------- Started Algorithm ----------")
+    sampler = DWaveSampler()
+    sampler = EmbeddingComposite(sampler)
     I = np.identity(n)
     p = 1
     Theta_one, m_one = g(Q, A, np.arange(n), p)
     Theta_two, m_two = g(Q, A, np.arange(n), p)
 
     for kindex in range(k):
-        z_one = map_back(annealer(Theta_one), m_one)
-        z_two = map_back(annealer(Theta_two), m_two)
+        z_one = map_back(annealer(Theta_one, sampler), m_one)
+        z_two = map_back(annealer(Theta_two, sampler), m_two)
 
     f_one = function_f(Q, z_one).item()
     f_two = function_f(Q, z_two).item()
@@ -182,7 +186,7 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q):
         Theta_prime, m = g(Q_prime, A, m_star, p)
 
         for kindex in range(k):
-            z_prime = map_back(annealer(Theta_prime), m)
+            z_prime = map_back(annealer(Theta_prime, sampler), m)
 
         if make_decision(q):
             z_prime = h(z_prime, q)

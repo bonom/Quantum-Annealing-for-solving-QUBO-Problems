@@ -1,8 +1,6 @@
 import dimod
 import hybrid
 import numpy as np
-from dwave.system.samplers import DWaveSampler
-from dwave.system.composites import EmbeddingComposite
 
 def matrix_to_dict(matrix):
     """
@@ -29,7 +27,7 @@ def matrix_to_dict(matrix):
     
     return m_t_dict
 
-def annealer(theta):
+def annealer(theta, sampler):
     
     if isinstance(theta, dict):
         pass
@@ -39,8 +37,6 @@ def annealer(theta):
         print(f"[!] Error -- I can't understand what type is {type(theta)}, only <class 'dict'>, <class 'numpy.ndarray'> or <class 'list'> admitted")
         raise TypeError
     
-    sampler = DWaveSampler()
-    sampler = EmbeddingComposite(sampler)
     response = sampler.sample_qubo(theta, num_reads=4)
 
     return np.atleast_2d(list(response.first.sample.values())).T
