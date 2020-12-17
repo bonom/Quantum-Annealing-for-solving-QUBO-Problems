@@ -7,6 +7,7 @@ from scipy import sparse
 from QA4QUBO.script import annealer
 from dwave.system.samplers import DWaveSampler
 from dwave.system.composites import EmbeddingComposite
+import datetime
 
 def function_f(Q, x):
     return ((np.atleast_2d(x).T).dot(Q)).dot(x)
@@ -162,7 +163,9 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR)
         z_one = map_back(annealer(Theta_one, sampler), m_one)
         z_two = map_back(annealer(Theta_two, sampler), m_two)
     end = time.time() - start_time
-    string = "Expected time to complete (determine with i_max): "+str(((end/2)/k)*i_max)+" seconds\n"
+    total = ((end/2)/k)*i_max
+    converted = datetime.timedelta(seconds=total)
+    string = "Expected time to complete (determine with i_max): "+str(converted)+" seconds\n"
     print(string)
     write(DIR, string)
 
@@ -257,5 +260,5 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR)
     string = "Tempo medio per iterazione: "+str(sum_time/i)+" secondi\n"
     print(string)
     write(DIR, string)
-    
+
     return np.atleast_2d(np.atleast_2d(z_star).T).T
