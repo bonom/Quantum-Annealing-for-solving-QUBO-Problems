@@ -36,21 +36,35 @@ def generate_QAP_problem(file):
     P = [[0 for i in range(n)] for j in range(n)]
     L = [[0 for i in range(n)] for j in range(n)]
 
-    for i in range(n):
+    for i in range(0, n):
         row_s = tmp[i].split(' ')
         row_s[len(row_s)-1] = row_s[len(row_s)-1].rstrip("\n")
         row = [int(element) for element in row_s]
         P[i] = row
-        
-    for i in range(n):
+    
+    print()
+    for i in range(0, n):
         row_s = tmp[i+n].split(' ')
         row_s[len(row_s)-1] = row_s[len(row_s)-1].rstrip("\n")
         row = [int(element) for element in row_s]
         L[i] = row
-        
-    return qubo_qap(P,L)
 
-def qubo_qap(flow: np.ndarray, distance: np.ndarray, penalty=10.):
+    Q = np.kron(P,L)
+    std_dev = 0
+    count = 0
+    mean = np.mean(Q)
+    for i in range(n):
+        for j in range(n):
+            if(Q[i][j] != 0):
+                std_dev += ((Q[i][j]- mean) ** 2)
+                count += 1
+    
+    std_dev /= count - 1
+    pen = (Q.max() + np.sqrt(std_dev)*2)
+        
+    return qubo_qap(P,L,pen)
+
+def qubo_qap(flow: np.ndarray, distance: np.ndarray, penalty):
     """Quadratic Assignment Problem (QAP)"""
     n = len(flow)
     q = np.einsum("ij,kl->ikjl", flow, distance).astype(np.float)
@@ -78,23 +92,20 @@ def generate_chimera(n):
     return list(zip(rows, cols))
 
 def generate_pegasus(n):
-    import matplotlib.pyplot as plt
-    G = dnx.pegasus_graph(16, fabric_only=False)
-    dnx.draw_pegasus(G, with_labels = True, node_size = 500, node_color = "Yellow")
-    plt.show()
+    G = dnx.pegasus_graph(16)
+
+    tmp = nx.to_numpy_matrix(G)
     
-    tmp = nx.to_dict_of_lists(G)
     rows = []
     cols = []
+           
     for i in range(n):
         rows.append(i)
         cols.append(i)
-        for j in tmp[i]:
-            if(j < n):
+        for j in range(n):
+            if(tmp.item(i,j)):
                 rows.append(i)
                 cols.append(j)
 
     return list(zip(rows, cols))
-
-if __name__ == "__main__":
-    generate_pegasus(8)
+    

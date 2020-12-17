@@ -4,11 +4,20 @@ import time
 import random
 import numpy as np
 from scipy import sparse
-from QA4QUBO.functions import shuffle_vector, make_decision
 from QA4QUBO.script import annealer
 
 def function_f(Q, x):
     return ((np.atleast_2d(x).T).dot(Q)).dot(x)
+
+def make_decision(probability):
+    return random.random() < probability 
+
+def shuffle_vector(v):
+    n = len(v)
+    
+    for i in range(n-1, 0, -1):
+        j = random.randint(0,i) 
+        v[i], v[j] = v[j], v[i]
 
 def shuffle_map(m):
     
@@ -87,7 +96,6 @@ def inverse(perm, n):
 
     return inverted
 
-
 def map_back(z, perm):
     n = len(perm)
     inverted = inverse(perm, n)
@@ -131,21 +139,17 @@ def sim_ann(p, f_prime, f_star):
         return np.exp(-(f_prime - f_star)/T)
     return 0
 
-def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, make_decision, shuffle_vector):
+def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q):
     print("\n---------- Started Algorithm ----------")
+    input()
     I = np.identity(n)
     p = 1
     Theta_one, m_one = g(Q, A, np.arange(n), p)
     Theta_two, m_two = g(Q, A, np.arange(n), p)
-    
-    #z_one = map_back(minimization(Theta_one), m_one)
-    #z_two = map_back(minimization(Theta_two), m_two)
 
     for kindex in range(k):
         z_one = map_back(annealer(Theta_one), m_one)
-        print("First z created")
         z_two = map_back(annealer(Theta_two), m_two)
-        print("Second z created")
 
     f_one = function_f(Q, z_one).item()
     f_two = function_f(Q, z_two).item()
@@ -178,7 +182,6 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, make
 
         Theta_prime, m = g(Q_prime, A, m_star, p)
 
-        #z_prime = map_back(minimization(Theta_prime), m)
         for kindex in range(k):
             z_prime = map_back(annealer(Theta_prime), m)
 

@@ -4,26 +4,6 @@ import numpy as np
 from dwave.system.samplers import DWaveSampler
 from dwave.system.composites import EmbeddingComposite
 
-def dict_to_vector(dic):
-    """
-        Convert a <class 'dict'> to a <class 'numpy.ndarray'>
-
-        Args:
-            dic:
-                A dictionary to convert (must be <class 'dict'>)
-        
-        Returns:
-            A <class 'numpy.ndarray'> vector
-
-    """
-    n = len(dic)
-    vector = list()
-    for i in range(n):
-        vector.append(dic[i])
-
-    return np.atleast_2d(vector).T
-
-
 def matrix_to_dict(matrix):
     """
         Convert a <class 'numpy.ndarray'> to a <class 'dict'>
@@ -56,7 +36,7 @@ def annealer(theta):
     elif isinstance(theta, np.ndarray) or isinstance(theta, list):
         theta = matrix_to_dict(theta)
     else:
-        print(f"[!] Error -- I can't understand what type is {type(theta)}, only <class 'dict'> or <class 'numpy.ndarray'> admitted")
+        print(f"[!] Error -- I can't understand what type is {type(theta)}, only <class 'dict'>, <class 'numpy.ndarray'> or <class 'list'> admitted")
         raise TypeError
     
     sampler = DWaveSampler()
@@ -65,31 +45,3 @@ def annealer(theta):
 
     return np.atleast_2d(list(response.first.sample.values())).T
 
-def main(n):
-    ls = list()
-    for i in range(n):
-        ls.append(np.random.randint(low=-100, high=100)/10)
-    Q = generate_QUBO_problem(ls)
-    if n <= 16:
-        print(f"{Q}")
-    else:
-        print(" -- New Q created! --")
-    # Define the workflow 
-    """
-    iteration = hybrid.RacingBranches(
-        hybrid.InterruptableTabuSampler(),
-        hybrid.EnergyImpactDecomposer(size=2)
-        | hybrid.QPUSubproblemAutoEmbeddingSampler()
-        | hybrid.SplatComposer()
-    ) | hybrid.ArgMin()
-    
-    workflow = hybrid.LoopUntilNoImprovement(iteration, convergence=1)
-    """
-    import time
-    time_s = time.time()
-    print(annealer(Q))
-    print(f"{time.time() - time_s} secondi")
-
-if __name__ == '__main__':
-    from QA4QUBO.matrix import generate_QUBO_problem
-    main(8)
