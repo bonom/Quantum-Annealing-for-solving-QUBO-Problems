@@ -54,13 +54,13 @@ def main(_n):
     nok = True
     i = 0
     max_range = 5436
-    dir = "output"+str(_n)+"_"+ str(max_range)
+    dir = "output_"+str(_n)+"_"+ str(max_range)
     while(nok):
         try:
             with open("output/"+dir+".txt", "r") as file:
                 pass
             max_range = int(max_range/(2**i))
-            dir = "output"+str(_n)+"_"+ str(max_range)
+            dir = "output_"+str(_n)+"_"+ str(max_range)
             i += 1
         except IOError:
             nok = False
