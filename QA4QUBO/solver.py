@@ -141,18 +141,30 @@ def sim_ann(p, f_prime, f_star):
         return np.exp(-(f_prime - f_star)/T)
     return 0
 
-def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q):
-    print("\n---------- Started Algorithm ----------")
+def write(dir, string):
+    file = open(dir, 'a')
+    file.write(string+'\n')
+    file.close()
+
+def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR):
+    string = "\n---------- Started Algorithm ----------\n"
+    print(string)
+    write(DIR, string)
     sampler = DWaveSampler()
     sampler = EmbeddingComposite(sampler)
     I = np.identity(n)
     p = 1
     Theta_one, m_one = g(Q, A, np.arange(n), p)
     Theta_two, m_two = g(Q, A, np.arange(n), p)
-
+    
+    start_time = time.time()
     for kindex in range(k):
         z_one = map_back(annealer(Theta_one, sampler), m_one)
         z_two = map_back(annealer(Theta_two, sampler), m_two)
+    end = time.time() - start_time
+    string = "Expected time to complete (determine with i_max): "+str(((end/2)/k)*i_max)+" seconds\n"
+    print(string)
+    write(DIR, string)
 
     f_one = function_f(Q, z_one).item()
     f_two = function_f(Q, z_two).item()
@@ -179,54 +191,71 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q):
     
     while True:
         start_time = time.time()
-        Q_prime = np.add(Q, (np.multiply(lam, S)))
-        if (i % N == 0):
-            p = p - ((p - p_delta)*eta)
+        try:
+            Q_prime = np.add(Q, (np.multiply(lam, S)))
+            if (i % N == 0):
+                p = p - ((p - p_delta)*eta)
 
-        Theta_prime, m = g(Q_prime, A, m_star, p)
+            Theta_prime, m = g(Q_prime, A, m_star, p)
 
-        for kindex in range(k):
-            z_prime = map_back(annealer(Theta_prime, sampler), m)
+            for kindex in range(k):
+                z_prime = map_back(annealer(Theta_prime, sampler), m)
 
-        if make_decision(q):
-            z_prime = h(z_prime, q)
-            
-        if (z_prime == z_star) == False:
-            f_prime = function_f(Q, z_prime).item()
-            if (f_prime < f_star):
-                z_prime, z_star = z_star, z_prime
-                f_star = f_prime
-                m_star = m
-                e = 0
-                d = 0
-                S = S + ((np.outer(z_prime, z_prime) - I) + np.diagflat(z_prime))
-            else:
-                d = d + 1
-                if make_decision(sim_ann(p, f_prime, f_star)):
+            if make_decision(q):
+                z_prime = h(z_prime, q)
+
+            if (z_prime == z_star) == False:
+                f_prime = function_f(Q, z_prime).item()
+                if (f_prime < f_star):
                     z_prime, z_star = z_star, z_prime
                     f_star = f_prime
                     m_star = m
                     e = 0
-            lam = min(lambda_zero, (lambda_zero/(2+(i-1)-e)))
-        else:
-            e = e + 1
-
-        # debug print
-        try:
-            print(f"-- -- Valori ciclo {i}/{i_max} -- --\np = {p}, f_prime = {f_prime}, f_star = {f_star}, e = {e}, d = {d}, Nmax = {N_max}, dmin = {d_min} e lambda = {lam}\nz = {np.atleast_2d(z_star).T}\nCi ho messo {time.time()-start_time} secondi\n")
-        except:
-            print(f"-- -- Ciclo {i}/{i_max} -- --\n\nNon ci sono variazioni di f, z\ne = {e}, d = {d}, Nmax = {N_max} e dmin = {d_min}\nCi ho messo {time.time()-start_time} secondi\n")
-        
-        sum_time = sum_time + (time.time() - start_time)
-        if ((i == i_max) or ((e + d >= N_max) and (d < d_min))):
-            print(f"Uscito al ciclo {i}/{i_max} ", end='')
-            if(i != i_max):
-                print("ed è stata raggiunta la convergenza.")
+                    d = 0
+                    S = S + ((np.outer(z_prime, z_prime) - I) + np.diagflat(z_prime))
+                else:
+                    d = d + 1
+                    if make_decision(sim_ann(p, f_prime, f_star)):
+                        z_prime, z_star = z_star, z_prime
+                        f_star = f_prime
+                        m_star = m
+                        e = 0
+                lam = min(lambda_zero, (lambda_zero/(2+(i-1)-e)))
             else:
-                print("\n")
+                e = e + 1
+
+            # debug print
+            try:
+                string = "-- -- Valori ciclo "+str(i)+"/"+str(i_max)+" -- --\np = "+str(p)+", f_prime = "+str(f_prime)+", f_star = "+str(f_star)+", e = "+str(e)+", d = "+str(d)+", Nmax = "+str(N_max)+", dmin = "+str(d_min)+" e lambda = "+str(lam)+"\nz = "+str(np.atleast_2d(z_star).T)+"\nCi ho messo "+str(time.time()-start_time)+" secondi\n"
+                print(string)
+                write(DIR, string)
+                #print(f"-- -- Valori ciclo {i}/{i_max} -- --\np = {p}, f_prime = {f_prime}, f_star = {f_star}, e = {e}, d = {d}, Nmax = {N_max}, dmin = {d_min} e lambda = {lam}\nz = {np.atleast_2d(z_star).T}\nCi ho messo {time.time()-start_time} secondi\n")
+            except:
+                string = "-- -- Valori ciclo "+str(i)+"/"+str(i_max)+" -- --\nNon ci sono variazioni di f, z\ne = "+str(e)+", d = "+str(d)+", Nmax = "+str(N_max)+", dmin = "+str(d_min)+" e lambda = "+str(lam)+"\nz = "+str(np.atleast_2d(z_star).T)+"\nCi ho messo "+str(time.time()-start_time)+" secondi\n"
+                print(string)
+                write(DIR, string)
+                #print(f"-- -- Ciclo {i}/{i_max} -- --\n\nNon ci sono variazioni di f, z\ne = {e}, d = {d}, Nmax = {N_max} e dmin = {d_min}\nCi ho messo {time.time()-start_time} secondi\n")
+
+            sum_time = sum_time + (time.time() - start_time)
+
+            if ((i == i_max) or ((e + d >= N_max) and (d < d_min))):
+                if(i != i_max):
+                    string = "Uscito al ciclo "+str(i)+"/"+str(i_max)+" ed è stata raggiunta la convergenza."
+                    print(string)
+                    write(DIR, string)
+                else:
+                    string = "Uscito al ciclo "+str(i)+"/"+str(i_max)+"\n"
+                    print(string)
+                    write(DIR, string)
+                break
+            
+            i = i + 1
+        except KeyboardInterrupt:
+            sum_time = sum_time + (time.time() - start_time)
             break
         
-        i = i + 1
-    print(f"Tempo medio per iterazione: {sum_time/i}")
-
+    string = "Tempo medio per iterazione: "+str(sum_time/i)+" secondi\n"
+    print(string)
+    write(DIR, string)
+    
     return np.atleast_2d(np.atleast_2d(z_star).T).T
