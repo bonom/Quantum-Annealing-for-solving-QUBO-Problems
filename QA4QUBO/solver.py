@@ -141,7 +141,6 @@ def sim_ann(p, f_prime, f_star):
 
 def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q):
     print("\n---------- Started Algorithm ----------")
-    input()
     I = np.identity(n)
     p = 1
     Theta_one, m_one = g(Q, A, np.arange(n), p)
