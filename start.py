@@ -36,12 +36,11 @@ def generateS():
     S = list()
     DIR = getS()
     with open(DIR) as file:
-        n = int(file.read())
+        n = int(file.readline())
         for i in range(n):
-            S.append(file.read())
+            S.append(int(file.readline().rstrip("\n")))
 
-    print(f" N = {n}\n{S}")
-    input()
+    
     return S, n
 
 def main():
@@ -82,7 +81,7 @@ def main():
         for row in _Q:
             print(f"{row}")
         print(f"\n{_A}\n ---------------------")
-
+    input("Start")
     z = solver.solve(d_min = 30, eta = 0.01, i_max = 3000, k = 1, lambda_zero = 1.0, n = _n, N = 8, N_max = 50, p_delta = 0.2, q = 0.1, A = _A, Q = _Q)
     min_z = solver.function_f(_Q,z)
     try:

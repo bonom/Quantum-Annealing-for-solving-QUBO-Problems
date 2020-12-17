@@ -190,7 +190,7 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q):
 
         if make_decision(q):
             z_prime = h(z_prime, q)
-
+            
         if (z_prime == z_star) == False:
             f_prime = function_f(Q, z_prime).item()
             if (f_prime < f_star):
