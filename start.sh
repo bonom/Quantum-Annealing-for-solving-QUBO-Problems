@@ -1,5 +1,5 @@
 #!/bin/bash
-
+clear
 pip3 install -r requirements.txt | grep "not installed" 
 
 #if [ -z "$1" ]
@@ -10,4 +10,4 @@ pip3 install -r requirements.txt | grep "not installed"
 #    n=$1
 #fi
 
-python3 -B main.py
+python3 -B start.py

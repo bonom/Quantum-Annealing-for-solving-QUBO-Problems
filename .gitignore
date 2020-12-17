@@ -1,7 +1,6 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
 QA4QUBO/__pycache__/
-QA4QUBO/tests/__pycache__
 *.py[cod]
 *$py.class
 

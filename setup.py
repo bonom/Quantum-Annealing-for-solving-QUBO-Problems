@@ -10,7 +10,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="QA4QUBO-BONOM",
-    version="0.2.0",
+    version="1.0.0",
     author="Andrea Bonomi",
     author_email="andrea.bonomi-2@studenti.unitn.it",
     description="Quantum Annealing for solving QUBO Problems",
