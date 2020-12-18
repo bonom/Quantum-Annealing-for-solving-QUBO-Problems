@@ -5,3 +5,4 @@ decorator>=4.4.2
 dwave_networkx>=0.8.8
 numpy>=1.18.5
 scipy>=1.5.4
+datetime>=4.3
