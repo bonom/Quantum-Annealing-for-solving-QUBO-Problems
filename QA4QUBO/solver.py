@@ -158,14 +158,13 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR)
     Theta_one, m_one = g(Q, A, np.arange(n), p)
     Theta_two, m_two = g(Q, A, np.arange(n), p)
     
-    start_time = time.time()
+    start = time.time()
     for kindex in range(k):
         z_one = map_back(annealer(Theta_one, sampler), m_one)
         z_two = map_back(annealer(Theta_two, sampler), m_two)
-    end = time.time() - start_time
-    total = ((end/2)/k)*i_max
-    converted = datetime.timedelta(seconds=total)
-    string = "Expected time to complete (determine with i_max): "+str(converted)+" seconds\n"
+        
+    converted = datetime.timedelta(seconds=((((time.time() - start)/2)/k)*i_max))
+    string = "Expected time to complete (determine with i_max): "+str(converted)+"\n"
     print(string)
     write(DIR, string)
 
@@ -228,17 +227,18 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR)
                 e = e + 1
 
             # debug print
+            converted = datetime.timedelta(seconds=(time.time()-start_time))
             try:
-                string = "-- -- Valori ciclo "+str(i)+"/"+str(i_max)+" -- --\np = "+str(p)+", f_prime = "+str(f_prime)+", f_star = "+str(f_star)+", e = "+str(e)+", d = "+str(d)+", Nmax = "+str(N_max)+", dmin = "+str(d_min)+" e lambda = "+str(lam)+"\nz = "+str(np.atleast_2d(z_star).T)+"\nCi ho messo "+str(time.time()-start_time)+" secondi\n"
+                string = "-- -- Valori ciclo "+str(i)+"/"+str(i_max)+" -- --\np = "+str(p)+", f_prime = "+str(f_prime)+", f_star = "+str(f_star)+", e = "+str(e)+", d = "+str(d)+", Nmax = "+str(N_max)+", dmin = "+str(d_min)+" e lambda = "+str(lam)+"\nz = "+str(np.atleast_2d(z_star).T)+"\nCi ho messo "+str(converted)+"\n"
                 print(string)
                 write(DIR, string)
                 #print(f"-- -- Valori ciclo {i}/{i_max} -- --\np = {p}, f_prime = {f_prime}, f_star = {f_star}, e = {e}, d = {d}, Nmax = {N_max}, dmin = {d_min} e lambda = {lam}\nz = {np.atleast_2d(z_star).T}\nCi ho messo {time.time()-start_time} secondi\n")
             except:
-                string = "-- -- Valori ciclo "+str(i)+"/"+str(i_max)+" -- --\nNon ci sono variazioni di f, z\ne = "+str(e)+", d = "+str(d)+", Nmax = "+str(N_max)+", dmin = "+str(d_min)+" e lambda = "+str(lam)+"\nz = "+str(np.atleast_2d(z_star).T)+"\nCi ho messo "+str(time.time()-start_time)+" secondi\n"
+                string = "-- -- Valori ciclo "+str(i)+"/"+str(i_max)+" -- --\nNon ci sono variazioni di f, z\ne = "+str(e)+", d = "+str(d)+", Nmax = "+str(N_max)+", dmin = "+str(d_min)+" e lambda = "+str(lam)+"\nz = "+str(np.atleast_2d(z_star).T)+"\nCi ho messo "+str(converted)+"\n"
                 print(string)
                 write(DIR, string)
                 #print(f"-- -- Ciclo {i}/{i_max} -- --\n\nNon ci sono variazioni di f, z\ne = {e}, d = {d}, Nmax = {N_max} e dmin = {d_min}\nCi ho messo {time.time()-start_time} secondi\n")
-
+                    
             sum_time = sum_time + (time.time() - start_time)
 
             if ((i == i_max) or ((e + d >= N_max) and (d < d_min))):
@@ -256,8 +256,10 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR)
         except KeyboardInterrupt:
             sum_time = sum_time + (time.time() - start_time)
             break
-        
-    string = "Tempo medio per iterazione: "+str(sum_time/i)+" secondi\n"
+
+    converted = datetime.timedelta(seconds=sum_time)  
+    conv = datetime.timedelta(seconds=(sum_time/i))  
+    string = "Tempo medio per iterazione: "+str(conv)+"\nTempo totale: "+str(converted)+"\n"
     print(string)
     write(DIR, string)
 
