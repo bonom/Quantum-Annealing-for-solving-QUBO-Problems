@@ -39,7 +39,13 @@ def annealer(theta, sampler):
         print(f"[!] Error -- I can't understand what type is {type(theta)}, only <class 'dict'>, <class 'numpy.ndarray'> or <class 'list'> admitted")
         raise TypeError
     
-    response = sampler.sample_qubo(theta)#, num_reads=4)
+    response = sampler.sample_qubo(theta, num_reads=4)
     
     return np.atleast_2d(list(response.first.sample.values())).T
 
+def run_annealer(theta, sampler):
+    
+    response = sampler.sample_qubo(matrix_to_dict(theta))
+    response = response.first.sample.values()
+
+    return np.atleast_2d(list(response)).T

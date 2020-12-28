@@ -1,0 +1,151 @@
+ ---------- Problem start ----------
+
+
+ S = [31772, 6611, 7215, 26174, 22204, 6758, 38448, 7089]
+
+ ---------- Q ---------- 
+
+[-3637862228, 210044692, 229234980, 831600328, 705465488, 214715176, 1221569856, 225231708]
+[210044692, -923292260, 47698365, 173036314, 146790644, 44677138, 254179728, 46865379]
+[229234980, 47698365, -1003289040, 188845410, 160201860, 48758970, 277402320, 51147135]
+[831600328, 173036314, 188845410, -3143418878, 581167496, 176883892, 1006337952, 185547486]
+[705465488, 146790644, 160201860, 581167496, -2754783668, 150054632, 853699392, 157404156]
+[214715176, 44677138, 48758970, 176883892, 150054632, -942828854, 259831584, 47907462]
+[1221569856, 254179728, 277402320, 1006337952, 853699392, 259831584, -4145578704, 272557872]
+[225231708, 46865379, 51147135, 185547486, 157404156, 47907462, 272557872, -986661198]
+
+---------- A ----------
+[(0, 0), (0, 1), (1, 1), (1, 0), (1, 2), (2, 2), (2, 1), (2, 3), (3, 3), (3, 2), (3, 4), (4, 4), (4, 3), (4, 5), (5, 5), (5, 4), (5, 6), (6, 6), (6, 5), (6, 7), (7, 7), (7, 6)]
+ -----------------------
+
+---------- Started Algorithm ----------
+
+Expected time to complete: 0:22:56.279879
+
+z_one = [[1 1 1 1 1 1 1 1]]
+z_two = [[1 1 1 1 1 1 1 1]]
+
+-- -- Valori ciclo 1/100 -- --
+Non ci sono variazioni di f, z
+e = 1, d = 0, Nmax = 50, dmin = 30 e lambda = 1.0
+z* = [[1 1 1 1 1 1 1 1]]
+Ci ho messo 0:00:14.256946
+Tempo 'quantum': 0:00:00
+Tempo 'hybrid': 0:00:14.256533
+Tempo 'calcoli': 0:00:00.000413
+
+-- -- Valori ciclo 2/100 -- --
+Non ci sono variazioni di f, z
+e = 2, d = 0, Nmax = 50, dmin = 30 e lambda = 1.0
+z* = [[1 1 1 1 1 1 1 1]]
+Ci ho messo 0:00:11.964948
+Tempo 'quantum': 0:00:00
+Tempo 'hybrid': 0:00:11.964760
+Tempo 'calcoli': 0:00:00.000188
+
+-- -- Valori ciclo 3/100 -- --
+Non ci sono variazioni di f, z
+e = 3, d = 0, Nmax = 50, dmin = 30 e lambda = 1.0
+z* = [[1 1 1 1 1 1 1 1]]
+Ci ho messo 0:00:12.596640
+Tempo 'quantum': 0:00:00
+Tempo 'hybrid': 0:00:12.596445
+Tempo 'calcoli': 0:00:00.000195
+
+-- -- Valori ciclo 4/100 -- --
+Non ci sono variazioni di f, z
+e = 4, d = 0, Nmax = 50, dmin = 30 e lambda = 1.0
+z* = [[1 1 1 1 1 1 1 1]]
+Ci ho messo 0:00:12.760737
+Tempo 'quantum': 0:00:00
+Tempo 'hybrid': 0:00:12.760533
+Tempo 'calcoli': 0:00:00.000204
+
+-- -- Valori ciclo 5/100 -- --
+p = 1, f_prime = -15076068392, f_star = -15076068392, e = 0, d = 0, Nmax = 50, dmin = 30 e lambda = 0.16666666666666666
+z* = [[ 1  1 -1 -1  1  1  1  1]]
+z' = [[1 1 1 1 1 1 1 1]]
+Ci ho messo 0:00:12.597201 in totale
+Tempo 'quantum': 0:00:00
+Tempo 'hybrid': 0:00:12.595250
+Tempo 'calcoli': 0:00:00.001951
+
+-- -- Valori ciclo 6/100 -- --
+p = 1, f_prime = 0, f_star = -15076068392, e = 0, d = 1, Nmax = 50, dmin = 30 e lambda = 0.14285714285714285
+z* = [[ 1  1 -1 -1  1  1  1  1]]
+z' = [[1 1 1 1 1 1 1 1]]
+Ci ho messo 0:00:13.457895 in totale
+Tempo 'quantum': 0:00:00
+Tempo 'hybrid': 0:00:13.457505
+Tempo 'calcoli': 0:00:00.000390
+
+-- -- Valori ciclo 7/100 -- --
+p = 1, f_prime = 0, f_star = -15076068392, e = 0, d = 2, Nmax = 50, dmin = 30 e lambda = 0.125
+z* = [[ 1  1 -1 -1  1  1  1  1]]
+z' = [[1 1 1 1 1 1 1 1]]
+Ci ho messo 0:00:12.942709 in totale
+Tempo 'quantum': 0:00:00
+Tempo 'hybrid': 0:00:12.942458
+Tempo 'calcoli': 0:00:00.000251
+
+-- -- Valori ciclo 8/100 -- --
+p = 0.992, f_prime = 0, f_star = -15076068392, e = 0, d = 3, Nmax = 50, dmin = 30 e lambda = 0.1111111111111111
+z* = [[ 1  1 -1 -1  1  1  1  1]]
+z' = [[1 1 1 1 1 1 1 1]]
+Ci ho messo 0:00:13.059686 in totale
+Tempo 'quantum': 0:00:00
+Tempo 'hybrid': 0:00:13.059418
+Tempo 'calcoli': 0:00:00.000268
+
+-- -- Valori ciclo 9/100 -- --
+p = 0.992, f_prime = 0, f_star = -15076068392, e = 0, d = 4, Nmax = 50, dmin = 30 e lambda = 0.1
+z* = [[ 1  1 -1 -1  1  1  1  1]]
+z' = [[1 1 1 1 1 1 1 1]]
+Ci ho messo 0:00:13.815640 in totale
+Tempo 'quantum': 0:00:00
+Tempo 'hybrid': 0:00:13.815358
+Tempo 'calcoli': 0:00:00.000282
+
+-- -- Valori ciclo 10/100 -- --
+p = 0.992, f_prime = 0, f_star = -15076068392, e = 0, d = 5, Nmax = 50, dmin = 30 e lambda = 0.09090909090909091
+z* = [[ 1  1 -1 -1  1  1  1  1]]
+z' = [[1 1 1 1 1 1 1 1]]
+Ci ho messo 0:00:13.200613 in totale
+Tempo 'quantum': 0:00:00
+Tempo 'hybrid': 0:00:13.200347
+Tempo 'calcoli': 0:00:00.000266
+
+-- -- Valori ciclo 11/100 -- --
+p = 0.992, f_prime = 0, f_star = -15076068392, e = 0, d = 6, Nmax = 50, dmin = 30 e lambda = 0.08333333333333333
+z* = [[ 1  1 -1 -1  1  1  1  1]]
+z' = [[1 1 1 1 1 1 1 1]]
+Ci ho messo 0:00:13.064038 in totale
+Tempo 'quantum': 0:00:00
+Tempo 'hybrid': 0:00:13.063772
+Tempo 'calcoli': 0:00:00.000266
+
+-- -- Valori ciclo 12/100 -- --
+p = 0.992, f_prime = 0, f_star = -15076068392, e = 0, d = 7, Nmax = 50, dmin = 30 e lambda = 0.07692307692307693
+z* = [[ 1  1 -1 -1  1  1  1  1]]
+z' = [[1 1 1 1 1 1 1 1]]
+Ci ho messo 0:00:16.505718 in totale
+Tempo 'quantum': 0:00:00
+Tempo 'hybrid': 0:00:16.505424
+Tempo 'calcoli': 0:00:00.000294
+
+Tempo medio per iterazione: 0:00:13.168177
+Tempo totale: 0:02:51.186296
+
+So far we found:
+- z - 
+[[ 1]
+ [ 1]
+ [-1]
+ [-1]
+ [ 1]
+ [ 1]
+ [ 1]
+ [ 1]]
+and has minimum = -15076068392
+c = 146271, c^2 = 21395205441, diff = -38909068127
+

@@ -4,11 +4,9 @@ import time
 import random
 import numpy as np
 from scipy import sparse
-from QA4QUBO.script import annealer
-from QA4QUBO.hd import run_annealer
-from dwave.system.samplers import DWaveSampler
+from QA4QUBO.script import annealer, run_annealer
+from dwave.system.samplers import DWaveSampler, LeapHybridSampler
 from dwave.system.composites import EmbeddingComposite
-from dwave.system.samplers import LeapHybridSampler
 import datetime
 
 def function_f(Q, x):
@@ -165,15 +163,16 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR)
     
     for kindex in range(k):
         #z_one = map_back(annealer(Theta_one, sampler), m_one)
-        z_one = annealer(Theta_one, sampler)
         #z_two = map_back(annealer(Theta_two, sampler), m_two)
-        z_two = annealer(Theta_two, sampler)
+        z_one = run_annealer(Theta_one, sampler)
+        z_two = run_annealer(Theta_two, sampler)
         
-    string = "z_one = "+str(np.atleast_2d(z_one).T)+"\nz_two = "+str(np.atleast_2d(z_two).T)+"\n"
+    converted = datetime.timedelta(seconds=((((time.time() - start)/2)/k)*i_max))
+    string = "Expected time to complete: "+str(converted)+"\n"
     print(string)
     write(DIR, string)
-    converted = datetime.timedelta(seconds=((((time.time() - start)/2)/k)*i_max))
-    string = "Expected time to complete (determine with i_max): "+str(converted)+"\n"
+
+    string = "z_one = "+str(np.atleast_2d(z_one).T)+"\nz_two = "+str(np.atleast_2d(z_two).T)+"\n"
     print(string)
     write(DIR, string)
 
@@ -214,14 +213,13 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR)
                 #z_prime = map_back(annealer(Theta_prime, sampler), m)
                 time_quantum = time.time()-start_quantum
                 start_hybrid = time.time()
-                #z_prime_h = map_back(run_annealer(Theta_prime), m)
-                z_prime = annealer(Theta_prime, sampler)
+                z_prime = run_annealer(Theta_prime, sampler)
                 time_hybrid = time.time()- start_hybrid
 
             if make_decision(q):
                 z_prime = h(z_prime, q)
 
-            if (z_prime == z_star) == False:
+            if (z_prime == z_star).all() == False:
                 f_prime = function_f(Q, z_prime).item()
                 if (f_prime < f_star):
                     z_prime, z_star = z_star, z_prime
