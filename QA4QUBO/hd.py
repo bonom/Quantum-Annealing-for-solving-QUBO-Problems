@@ -1,14 +1,10 @@
-import dimod
-import hybrid
+from dwave.system.samplers import LeapHybridSampler
 import numpy as np
-import time
 
-def run_annealer(theta, iteration, workflow):
-    bqm = dimod.BinaryQuadraticModel({}, matrix_to_dict(theta), 0, dimod.BINARY)
-
-    init_state = hybrid.State.from_problem(bqm)
-    final_state = workflow.run(init_state).result()
-    response = final_state.samples.first.sample.values()
+def run_annealer(theta, sampler):
+    
+    response = sampler.sample_qubo(matrix_to_dict(theta))
+    response = response.first.sample.values()
 
     return np.atleast_2d(list(response)).T
 
