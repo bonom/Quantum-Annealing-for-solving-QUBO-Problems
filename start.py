@@ -5,9 +5,18 @@ from os import listdir
 from os.path import isfile, join
 import sys
 import numpy as np
+import hybrid
 qap = [f for f in listdir("QA4QUBO/tests/") if isfile(join("QA4QUBO/tests/", f))]
 npp = [f for f in listdir("QA4QUBO/npp/") if isfile(join("QA4QUBO/npp/", f))]
-MAX = 21744
+MAX = 43488
+
+iteration = hybrid.RacingBranches(
+    hybrid.InterruptableTabuSampler(),
+    hybrid.EnergyImpactDecomposer(size=1)
+    | hybrid.QPUSubproblemAutoEmbeddingSampler()
+    | hybrid.SplatComposer()
+    ) | hybrid.ArgMin()
+workflow = hybrid.LoopUntilNoImprovement(iteration, convergence=1)
 
 def getproblem():
     elements = list()
@@ -54,7 +63,7 @@ def write(dir, string):
 def main(_n):  
     nok = True
     i = 0
-    max_range = 21744
+    max_range = 43488
     dir = "output_"+str(_n)+"_"+ str(max_range)
     while(nok):
         try:
@@ -122,7 +131,7 @@ def main(_n):
         print(string)
         write(_DIR, string)
     
-    z = solver.solve(d_min = 30, eta = 0.01, i_max = 3, k = 1, lambda_zero = 1.0, n = _n, N = 8, N_max = 50, p_delta = 0.2, q = 0.1, A = _A, Q = _Q, DIR = _DIR)
+    z = solver.solve(d_min = 30, eta = 0.01, i_max = 100, k = 1, lambda_zero = 1.0, n = _n, N = 8, N_max = 50, p_delta = 0.2, q = 0.1, A = _A, Q = _Q, DIR = _DIR, _iter = iteration, work = workflow)
     min_z = solver.function_f(_Q,z).item()
     string = "So far we found:\n- z - \n"+str(z)+"\nand has minimum = "+str(min_z)+"\n"
     try:
