@@ -209,12 +209,8 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR)
             Theta_prime, m = g(Q_prime, A, m_star, p)
 
             for kindex in range(k):
-                start_quantum = time.time()
                 #z_prime = map_back(annealer(Theta_prime, sampler), m)
-                time_quantum = time.time()-start_quantum
-                start_hybrid = time.time()
                 z_prime = run_annealer(Theta_prime, sampler)
-                time_hybrid = time.time()- start_hybrid
 
             if make_decision(q):
                 z_prime = h(z_prime, q)
@@ -243,14 +239,12 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR)
             converted = datetime.timedelta(seconds=(time.time()-start_time))
 
             try:
-                conv_quantum = datetime.timedelta(seconds=time_quantum)
-                conv_hybrid = datetime.timedelta(seconds=time_hybrid)
-                string = "-- -- Valori ciclo "+str(i)+"/"+str(i_max)+" -- --\np = "+str(p)+", f_prime = "+str(f_prime)+", f_star = "+str(f_star)+", e = "+str(e)+", d = "+str(d)+", Nmax = "+str(N_max)+", dmin = "+str(d_min)+" e lambda = "+str(lam)+"\nz* = "+str(np.atleast_2d(z_star).T)+"\nz' = "+str(np.atleast_2d(z_prime).T)+"\nCi ho messo "+str(converted)+" in totale\n"+"Tempo 'quantum': "+str(conv_quantum)+"\nTempo 'hybrid': "+str(conv_hybrid)+"\nTempo 'calcoli': "+str(converted-(conv_quantum+conv_hybrid))+"\n"
+                string = "-- -- Valori ciclo "+str(i)+"/"+str(i_max)+" -- --\np = "+str(p)+", f_prime = "+str(f_prime)+", f_star = "+str(f_star)+", e = "+str(e)+", d = "+str(d)+", Nmax = "+str(N_max)+", dmin = "+str(d_min)+" e lambda = "+str(lam)+"\nz* = "+str(np.atleast_2d(z_star).T)+"\nz' = "+str(np.atleast_2d(z_prime).T)+"\nCi ho messo "+str(converted)+" in totale\n"
                 print(string)
                 write(DIR, string)
                 #print(f"-- -- Valori ciclo {i}/{i_max} -- --\np = {p}, f_prime = {f_prime}, f_star = {f_star}, e = {e}, d = {d}, Nmax = {N_max}, dmin = {d_min} e lambda = {lam}\nz = {np.atleast_2d(z_star).T}\nCi ho messo {time.time()-start_time} secondi\n")
             except:
-                string = "-- -- Valori ciclo "+str(i)+"/"+str(i_max)+" -- --\nNon ci sono variazioni di f, z\ne = "+str(e)+", d = "+str(d)+", Nmax = "+str(N_max)+", dmin = "+str(d_min)+" e lambda = "+str(lam)+"\nz* = "+str(np.atleast_2d(z_star).T)+"\nCi ho messo "+str(converted)+"\n"+"Tempo 'quantum': "+str(conv_quantum)+"\nTempo 'hybrid': "+str(conv_hybrid)+"\nTempo 'calcoli': "+str(converted-(conv_quantum+conv_hybrid))+"\n"
+                string = "-- -- Valori ciclo "+str(i)+"/"+str(i_max)+" -- --\nNon ci sono variazioni di f, z\ne = "+str(e)+", d = "+str(d)+", Nmax = "+str(N_max)+", dmin = "+str(d_min)+" e lambda = "+str(lam)+"\nz* = "+str(np.atleast_2d(z_star).T)+"\nCi ho messo "+str(converted)+" in totale\n"
                 print(string)
                 write(DIR, string)
                 #print(f"-- -- Ciclo {i}/{i_max} -- --\n\nNon ci sono variazioni di f, z\ne = {e}, d = {d}, Nmax = {N_max} e dmin = {d_min}\nCi ho messo {time.time()-start_time} secondi\n")

@@ -44,7 +44,7 @@ def annealer(theta, sampler):
     return np.atleast_2d(list(response.first.sample.values())).T
 
 def run_annealer(theta, sampler):
-    
+
     response = sampler.sample_qubo(matrix_to_dict(theta))
     response = response.first.sample.values()
 
