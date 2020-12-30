@@ -159,21 +159,27 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR)
     Theta_one, m_one = g(Q, A, np.arange(n), p)
     Theta_two, m_two = g(Q, A, np.arange(n), p)
     
-    start = time.time()
+    #start = time.time()
     
     for kindex in range(k):
-        print("Working on z1...", end = '')
+        string  = "Working on z1..."
+        print(string, end = ' ')
+        write(DIR, string)
         z_one = map_back(annealer(Theta_one, sampler), m_one)
-        print(" End.\nWorking on z2...", end = '')
+        string = "End.\nWorking on z2..."
+        print(string, end = ' ')
+        write(DIR, string)
         z_two = map_back(annealer(Theta_two, sampler), m_two)
-        print(" End.")
+        string = "End."
+        print(string)
+        write(DIR, string)
         #z_one = run_annealer(Theta_one, sampler)
         #z_two = run_annealer(Theta_two, sampler)
         
-    converted = datetime.timedelta(seconds=((((time.time() - start)/2)/k)*i_max))
-    string = "Expected time to complete: "+str(converted)+"\n"
-    print(string)
-    write(DIR, string)
+    #converted = datetime.timedelta(seconds=((((time.time() - start)/2)/k)*i_max))
+    #string = "Expected time to complete: "+str(converted)+"\n"
+    #print(string)
+    #write(DIR, string)
 
     #string = "z_one = "+str(np.atleast_2d(z_one).T)+"\nz_two = "+str(np.atleast_2d(z_two).T)+"\n"
     print(string)
@@ -212,13 +218,19 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR)
             Theta_prime, m = g(Q_prime, A, m_star, p)
 
             for kindex in range(k):
+                string = "Working on z'..."
+                print(string,end=' ')
+                write(DIR, string)
                 z_prime = map_back(annealer(Theta_prime, sampler), m)
+                string = "End."
+                print(string)
+                write(DIR, string)
                 #z_prime = run_annealer(Theta_prime, sampler)
 
             if make_decision(q):
                 z_prime = h(z_prime, q)
 
-            if (z_prime == z_star).all() == False:
+            if (z_prime == z_star) == False:
                 f_prime = function_f(Q, z_prime).item()
                 if (f_prime < f_star):
                     z_prime, z_star = z_star, z_prime

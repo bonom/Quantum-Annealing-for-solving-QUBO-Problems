@@ -7,7 +7,7 @@ import sys
 import numpy as np
 qap = [f for f in listdir("QA4QUBO/tests/") if isfile(join("QA4QUBO/tests/", f))]
 npp = [f for f in listdir("QA4QUBO/npp/") if isfile(join("QA4QUBO/npp/", f))]
-MAX = 43488
+MAX = 10000
 
 def getproblem():
     elements = list()
@@ -54,7 +54,7 @@ def write(dir, string):
 def main(_n):  
     nok = True
     i = 0
-    max_range = 43488
+    max_range = 10000
     dir = "output_"+str(_n)+"_"+ str(max_range)
     while(nok):
         try:
