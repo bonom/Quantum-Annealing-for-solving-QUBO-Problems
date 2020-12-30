@@ -151,9 +151,9 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR)
     string = "\n---------- Started Algorithm ----------\n"
     print(string)
     write(DIR, string)
-    #sampler = DWaveSampler()
-    #sampler = EmbeddingComposite(sampler)
-    sampler = LeapHybridSampler()
+    sampler = DWaveSampler()
+    sampler = EmbeddingComposite(sampler)
+    #sampler = LeapHybridSampler()
     I = np.identity(n)
     p = 1
     Theta_one, m_one = g(Q, A, np.arange(n), p)
@@ -162,10 +162,10 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR)
     start = time.time()
     
     for kindex in range(k):
-        #z_one = map_back(annealer(Theta_one, sampler), m_one)
-        #z_two = map_back(annealer(Theta_two, sampler), m_two)
-        z_one = run_annealer(Theta_one, sampler)
-        z_two = run_annealer(Theta_two, sampler)
+        z_one = map_back(annealer(Theta_one, sampler), m_one)
+        z_two = map_back(annealer(Theta_two, sampler), m_two)
+        #z_one = run_annealer(Theta_one, sampler)
+        #z_two = run_annealer(Theta_two, sampler)
         
     converted = datetime.timedelta(seconds=((((time.time() - start)/2)/k)*i_max))
     string = "Expected time to complete: "+str(converted)+"\n"
@@ -209,8 +209,8 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR)
             Theta_prime, m = g(Q_prime, A, m_star, p)
 
             for kindex in range(k):
-                #z_prime = map_back(annealer(Theta_prime, sampler), m)
-                z_prime = run_annealer(Theta_prime, sampler)
+                z_prime = map_back(annealer(Theta_prime, sampler), m)
+                #z_prime = run_annealer(Theta_prime, sampler)
 
             if make_decision(q):
                 z_prime = h(z_prime, q)
