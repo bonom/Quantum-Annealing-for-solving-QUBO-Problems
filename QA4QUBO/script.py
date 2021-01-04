@@ -29,8 +29,7 @@ def matrix_to_dict(matrix):
     
     return m_t_dict
 
-def annealer(theta, sampler):
-    
+def annealer(theta, sampler, k):
     if isinstance(theta, dict):
         pass
     elif isinstance(theta, np.ndarray) or isinstance(theta, list):
@@ -38,14 +37,8 @@ def annealer(theta, sampler):
     else:
         print(f"[!] Error -- I can't understand what type is {type(theta)}, only <class 'dict'>, <class 'numpy.ndarray'> or <class 'list'> admitted")
         raise TypeError
-    
-    response = sampler.sample_qubo(theta, num_reads=4)
-    
+    first = time.time()
+    response = sampler.sample_qubo(theta, num_reads=k)
+    second = time.time()
+    print(f"Completed annealing in {second - first}")
     return np.atleast_2d(list(response.first.sample.values())).T
-
-def run_annealer(theta, sampler):
-
-    response = sampler.sample_qubo(matrix_to_dict(theta))
-    response = response.first.sample.values()
-
-    return np.atleast_2d(list(response)).T

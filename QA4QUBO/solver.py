@@ -4,7 +4,7 @@ import time
 import random
 import numpy as np
 from scipy import sparse
-from QA4QUBO.script import annealer, run_annealer
+from QA4QUBO.script import annealer
 from dwave.system.samplers import DWaveSampler, LeapHybridSampler
 from dwave.system.composites import EmbeddingComposite
 import datetime
@@ -122,7 +122,6 @@ def g(Q, A, oldperm, pr):
     perm = fill(m, oldperm, n)
     inversed = inverse(perm, n)
     Theta = [[0 for col in range(n)] for row in range(n)]
-
     for row, col in A:
         k = inversed[row]
         l = inversed[col]
@@ -148,46 +147,51 @@ def write(dir, string):
     file.close()
 
 def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR):
-    string = "\n---------- Started Algorithm ----------\n"
-    print(string)
-    write(DIR, string)
-    sampler = DWaveSampler()
-    sampler = EmbeddingComposite(sampler)
-    #sampler = LeapHybridSampler()
-    I = np.identity(n)
-    p = 1
-    Theta_one, m_one = g(Q, A, np.arange(n), p)
-    Theta_two, m_two = g(Q, A, np.arange(n), p)
-    
-    for kindex in range(k):
-        string  = "Working on z1..."
-        print(string, end = ' ')
-        write(DIR, string)
-        z_one = map_back(annealer(Theta_one, sampler), m_one)
-        string = "End.\nWorking on z2..."
-        print(string, end = ' ')
-        write(DIR, string)
-        z_two = map_back(annealer(Theta_two, sampler), m_two)
-        string = "End."
+    try:    
+        string = "\n---------- Started Algorithm ----------\n"
         print(string)
         write(DIR, string)
+        sampler = DWaveSampler()
+        sampler = EmbeddingComposite(sampler)
+        #sampler = LeapHybridSampler()
+        I = np.identity(n)
+        p = 1
+        Theta_one, m_one = g(Q, A, np.arange(n), p)
+        Theta_two, m_two = g(Q, A, np.arange(n), p)
 
-    f_one = function_f(Q, z_one).item()
-    f_two = function_f(Q, z_two).item()
-    if (f_one < f_two):
-        z_star = z_one
-        f_star = f_one
-        m_star = m_one
-        z_prime = z_two
-    else:
-        z_star = z_two
-        f_star = f_two
-        m_star = m_two
-        z_prime = z_one
-    if (f_one == f_two) == False:
-        S = (np.outer(z_prime, z_prime) - I) + np.diagflat(z_prime)
-    else:
-        S = [[0 for col in range(n)] for row in range(n)]
+        for kindex in range(k):
+            string  = "Working on z1..."
+            print(string, end = ' ')
+            write(DIR, string)
+            z_one = map_back(annealer(Theta_one, sampler, kindex), m_one)
+            string = "End.\nWorking on z2..."
+            print(string, end = ' ')
+            write(DIR, string)
+            z_two = map_back(annealer(Theta_two, sampler, kindex), m_two)
+            string = "End."
+            print(string)
+            write(DIR, string)
+
+        f_one = function_f(Q, z_one).item()
+        f_two = function_f(Q, z_two).item()
+        if (f_one < f_two):
+            z_star = z_one
+            f_star = f_one
+            m_star = m_one
+            z_prime = z_two
+        else:
+            z_star = z_two
+            f_star = f_two
+            m_star = m_two
+            z_prime = z_one
+        if (f_one == f_two) == False:
+            S = (np.outer(z_prime, z_prime) - I) + np.diagflat(z_prime)
+        else:
+            S = [[0 for col in range(n)] for row in range(n)]
+    except KeyboardInterrupt:
+        string = "KeyboardInterrupt occurred before cycle"
+        print(string)
+        write(DIR, string)
     e = 0
     d = 0
     i = 1
@@ -208,7 +212,7 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR)
                 string = "Working on z'..."
                 print(string,end=' ')
                 write(DIR, string)
-                z_prime = map_back(annealer(Theta_prime, sampler), m)
+                z_prime = map_back(annealer(Theta_prime, sampler, kindex), m)
                 string = "End."
                 print(string)
                 write(DIR, string)
