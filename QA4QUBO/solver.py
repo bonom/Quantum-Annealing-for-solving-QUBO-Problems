@@ -10,7 +10,7 @@ from dwave.system.composites import EmbeddingComposite
 import datetime
 
 def function_f(Q, x):
-    return ((np.atleast_2d(x).T).dot(Q)).dot(x)
+    return np.matmul(np.matmul(np.atleast_2d(x).T, Q), x)
 
 def make_decision(probability):
     return random.random() < probability 
@@ -159,8 +159,6 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR)
     Theta_one, m_one = g(Q, A, np.arange(n), p)
     Theta_two, m_two = g(Q, A, np.arange(n), p)
     
-    #start = time.time()
-    
     for kindex in range(k):
         string  = "Working on z1..."
         print(string, end = ' ')
@@ -173,17 +171,6 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR)
         string = "End."
         print(string)
         write(DIR, string)
-        #z_one = run_annealer(Theta_one, sampler)
-        #z_two = run_annealer(Theta_two, sampler)
-        
-    #converted = datetime.timedelta(seconds=((((time.time() - start)/2)/k)*i_max))
-    #string = "Expected time to complete: "+str(converted)+"\n"
-    #print(string)
-    #write(DIR, string)
-
-    #string = "z_one = "+str(np.atleast_2d(z_one).T)+"\nz_two = "+str(np.atleast_2d(z_two).T)+"\n"
-    print(string)
-    write(DIR, string)
 
     f_one = function_f(Q, z_one).item()
     f_two = function_f(Q, z_two).item()
