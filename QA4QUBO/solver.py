@@ -177,7 +177,7 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR)
         Theta_one, m_one = g(Q, A, np.arange(n), p)
         Theta_two, m_two = g(Q, A, np.arange(n), p)
 
-        for kindex in range(k):
+        for kindex in range(1, k+1):
             string  = "Working on z1..."
             print(string, end = ' ')
             write(DIR, string)
@@ -233,7 +233,7 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR)
 
             Theta_prime, m = g(Q_prime, A, m_star, p)
 
-            for kindex in range(k):
+            for kindex in range(1, k+1):
                 string = "Working on z'..."
                 print(string,end=' ')
                 write(DIR, string)
