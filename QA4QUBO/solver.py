@@ -246,8 +246,7 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR)
                 #z_prime = run_annealer(Theta_prime, sampler)
 
             if make_decision(q):
-                pass
-                #z_prime = h(z_prime, q)
+                z_prime = h(z_prime, q)
 
             if (z_prime == z_star).all() == False:
                 f_prime = function_f(Q, z_prime).item()
