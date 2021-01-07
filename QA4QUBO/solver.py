@@ -156,16 +156,13 @@ def matrix_to_dict(matrix):
     for i in range(n):
         j_max += 1
         while j < j_max:
-            m_t_dict[i,j] = matrix[i][j]
+            if matrix[i][j] != 0:
+                m_t_dict[i,j] = matrix[i][j]
+                m_t_dict[j,i] = matrix[j][i]
             j += 1
         j = 0
     
     return m_t_dict
-
-def intret(p):
-    if make_decision(p):
-        return 1
-    return -1
 
 def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR):
     try:    
@@ -184,12 +181,16 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR)
             string  = "Working on z1..."
             print(string, end = ' ')
             write(DIR, string)
+            start = time.time()
             z_one = map_back(annealer(matrix_to_dict(Theta_one), sampler, kindex), m_one)
-            string = "End.\nWorking on z2..."
+            convert_1 = datetime.timedelta(seconds=(time.time()-start))
+            string = "Ended in "+str(convert_1)+" .\nWorking on z2..."
             print(string, end = ' ')
             write(DIR, string)
+            start = time.time()
             z_two = map_back(annealer(matrix_to_dict(Theta_two), sampler, kindex), m_two)
-            string = "End."
+            convert_2 = datetime.timedelta(seconds=(time.time()-start))
+            string = "Ended in "+str(convert_2)+" ."
             print(string)
             write(DIR, string)
 
@@ -234,8 +235,10 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR)
                 string = "Working on z'..."
                 print(string,end=' ')
                 write(DIR, string)
+                start = time.time()
                 z_prime = map_back(annealer(matrix_to_dict(Theta_prime), sampler, kindex), m)
-                string = "End."
+                convert_z = datetime.timedelta(seconds=(time.time()-start))
+                string = "Ended in "+str(convert_z)+" ."
                 print(string)
                 write(DIR, string)
                 #z_prime = run_annealer(Theta_prime, sampler)
@@ -244,7 +247,7 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR)
                 pass
                 #z_prime = h(z_prime, q)
 
-            if (z_prime == z_star) == False:
+            if (z_prime == z_star).all() == False:
                 f_prime = function_f(Q, z_prime).item()
                 if (f_prime < f_star):
                     z_prime, z_star = z_star, z_prime
