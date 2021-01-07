@@ -212,9 +212,11 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR)
             S = [[0 for col in range(n)] for row in range(n)]
             
     except KeyboardInterrupt:
-        string = "KeyboardInterrupt occurred before cycle"
+        string = "KeyboardInterrupt occurred before cycle, closing program..."
         print(string)
         write(DIR, string)
+        exit()
+
     e = 0
     d = 0
     i = 1
