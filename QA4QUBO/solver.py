@@ -106,7 +106,11 @@ def map_back(z, perm):
     z_ret = [0 for i in range(n)]
 
     for i in range(n):
-        z_ret[i] = z[inverted[i]]
+        try:
+            z_ret[i] = z[inverted[i]]
+        except:
+            print(f"Error on i = {i} -> z_ret{len(z_ret)} and inverted{len(inverted)} and perm{len(perm)} and z{len(z)}")
+            exit()
 
     return z_ret
 
@@ -133,7 +137,7 @@ def h(vect, pr):
     for i in range(n):
         print(vect[i])
         if make_decision(pr):
-            print(f"vect[{i}] = - {vect[i]}")
+            #print(f"vect[{i}] = - {vect[i]}")
             vect[i] = -(vect[i])
     return vect
 
@@ -147,7 +151,7 @@ def write(dir, string):
     file = open(dir, 'a')
     file.write(string+'\n')
     file.close()
-
+"""
 def matrix_to_dict(matrix):
     n = len(matrix)
     j_max = 0
@@ -163,14 +167,89 @@ def matrix_to_dict(matrix):
         j = 0
     
     return m_t_dict
+"""
+"""
+def matrix_to_dict(matrix, nodelist):
+    n = len(matrix)
+    m_t_ret = dict()
+    j_max = 0
+    keys = list(nodelist.keys())
+    for i in range(n):
+        try:
+            key = keys[i]
+        except:
+            print(f"Error on i = {i}, len = {len(keys)}")
+            exit()
+        if matrix[i][i] != 0:
+            m_t_ret[key,key] = matrix[i][i]
+    
+    keys = list(nodelist.keys())
+    key = keys[0]
+    for i in range(n):
+        j = 0
+        while j < j_max:
+            #print(f"[{i}.{j}], [{j_max}] --> {matrix[i][j]}, \n!!!{nodelist}!!!")
+            if matrix[i][j] != 0:
+                values = list(nodelist[key])
+                while(len(values) == 0):
+                    del nodelist[key]
+                    keys = list(nodelist.keys())
+                    if len(keys) != 0:
+                        key = keys[0]
+                        values = list(nodelist[key])
+                    else:
+                        print(f"We have a problem from {i}.{j}")
+                        exit()
+                        
+                m_t_ret[key,values[0]] = matrix[i][j]
+                nodelist[key].remove(values[0])
+            j += 1
+        j_max += 1
+
+    return m_t_ret
+"""
+def matrix_to_dict(matrix, nodelist):
+    n = len(matrix)
+    m_t_ret = dict()
+    for i in range(n):
+        keys = list(nodelist.keys())
+        key = keys[i]
+        if matrix[i][i] != 0:
+            m_t_ret[key,key] = matrix[i][i]
+
+    return m_t_ret
+
+def get_active(sampler, n):
+    nodes = dict()
+    tmp = list(sampler.nodelist)
+    nodelist = list()
+    for i in range(n):
+        nodelist.append(tmp[i])
+        
+    for i in nodelist:
+        nodes[i] = list()
+    
+    for node_1,node_2 in sampler.edgelist:
+        if node_1 in nodelist and node_2 in nodelist:
+            nodes[node_1].append(node_2)
+            nodes[node_2].append(node_1)
+    
+    if(len(nodes) != n):
+        i = 1
+        while(len(nodes) != n):
+            nodes[tmp[n+i]] = list()
+
+    return nodes
+
 
 def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR):
     try:    
         string = "\n---------- Started Algorithm ----------\n"
         print(string)
         write(DIR, string)
-        sampler = DWaveSampler()
-        sampler = EmbeddingComposite(sampler)
+        sampler = DWaveSampler(solver={'topology__type' : 'pegasus'},vartype={'vartype' : 'SPIN'})
+        vertex = get_active(sampler, n)
+        #print(vertex)
         #sampler = LeapHybridSampler()
         I = np.identity(n)
         p = 1
@@ -182,13 +261,13 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR)
             print(string, end = ' ')
             write(DIR, string)
             start = time.time()
-            z_one = map_back(annealer(matrix_to_dict(Theta_one), sampler, kindex), m_one)
+            z_one = map_back(annealer(matrix_to_dict(Theta_one, vertex.copy()), sampler, kindex), m_one)
             convert_1 = datetime.timedelta(seconds=(time.time()-start))
             string = "Ended in "+str(convert_1)+" .\nWorking on z2..."
             print(string, end = ' ')
             write(DIR, string)
             start = time.time()
-            z_two = map_back(annealer(matrix_to_dict(Theta_two), sampler, kindex), m_two)
+            z_two = map_back(annealer(matrix_to_dict(Theta_two, vertex.copy()), sampler, kindex), m_two)
             convert_2 = datetime.timedelta(seconds=(time.time()-start))
             string = "Ended in "+str(convert_2)+" ."
             print(string)
@@ -238,7 +317,7 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR)
                 print(string,end=' ')
                 write(DIR, string)
                 start = time.time()
-                z_prime = map_back(annealer(matrix_to_dict(Theta_prime), sampler, kindex), m)
+                z_prime = map_back(annealer(matrix_to_dict(Theta_prime, vertex.copy()), sampler, kindex), m)
                 convert_z = datetime.timedelta(seconds=(time.time()-start))
                 string = "Ended in "+str(convert_z)+" ."
                 print(string)
@@ -259,7 +338,8 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR)
                     S = S + ((np.outer(z_prime, z_prime) - I) + np.diagflat(z_prime))
                 else:
                     d = d + 1
-                    if make_decision(sim_ann(p, f_prime, f_star)):
+                    #if make_decision(sim_ann((p - p_delta), f_prime, f_star)): #
+                    if make_decision((p-p_delta)**(f_prime-f_star)):
                         z_prime, z_star = z_star, z_prime
                         f_star = f_prime
                         m_star = m

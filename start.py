@@ -98,18 +98,21 @@ def main(_n):
     string = " ---------- Problem start ----------\n"
     print(string)
     write(_DIR, string)
+    """
     if not QAP:
         string = "\n S = "+str(S)+"\n"
         print(string)
         write(_DIR, string)
+    """
 
-    view = True
-
+    view = False
+    """
     if (_n > 16):
         if(input(f"n is very big ({_n}), do you still want to see Q and A? (y/n) ") in ['y', 'Y', 1, 's', 'S']):
             view = True
         else:
             view = False
+    """
     if view:
         string = " ---------- Q ---------- \n"
         print(string)
@@ -122,7 +125,7 @@ def main(_n):
         print(string)
         write(_DIR, string)
     
-    z = solver.solve(d_min = 30, eta = 0.01, i_max = 100, k = 1, lambda_zero = 1.0, n = _n, N = 8, N_max = 50, p_delta = 0.2, q = 0.1, A = _A, Q = _Q, DIR = _DIR)
+    z = solver.solve(d_min = 30, eta = 0.01, i_max = 1000, k = 1, lambda_zero = 1.0, n = _n, N = 8, N_max = 50, p_delta = 0.2, q = 0.1, A = _A, Q = _Q, DIR = _DIR)
     min_z = solver.function_f(_Q,z).item()
     string = "So far we found:\n- z - \n"+str(z)+"\nand has minimum = "+str(min_z)+"\n"
     try:
