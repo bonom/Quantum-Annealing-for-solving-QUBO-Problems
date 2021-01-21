@@ -14,4 +14,4 @@ S = vector.generate_S(n, max_range)
 _Q, c = matrix.generate_QUBO_problem(S)
 
 def create_A(solver=DWaveSampler(solver={'topology__type' : 'pegasus'})):
-    for 
+    return 0

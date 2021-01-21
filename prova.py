@@ -63,16 +63,8 @@ print(sparse)
 qubit_attivi = list()
 for qubit in solver.nodelist:
     qubit_attivi.append(qubit)
-
-print(len(qubit_attivi))
-
-for qubit in range(0,5729):
-    if qubit not in solver.nodelist:
-        print(qubit, end =', ')
-exit()
-Q = matrix_to_dict(_Q, qubit_attivi)
-
-print(Q)
+    
+Q = matrix_to_dict(Q, qubit_attivi)
 
 sampler = DWaveSampler()
 
