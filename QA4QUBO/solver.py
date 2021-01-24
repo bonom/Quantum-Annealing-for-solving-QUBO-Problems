@@ -217,6 +217,21 @@ def matrix_to_dict(matrix, nodelist):
         if matrix[i][i] != 0:
             m_t_ret[key,key] = matrix[i][i]
 
+    j = 0
+    j_max = 0
+    for i in range(n):
+        while j < j_max:
+            keys = list(nodelist.keys())
+            key = keys[i]
+            values = nodelist[key]
+            try:
+                m_t_ret[key,values[0]] = matrix[i][j]
+                nodelist[key].remove(values[0])
+            except:
+                pass
+            j += 1
+        j_max += 1
+
     return m_t_ret
 
 def get_active(sampler, n):
@@ -248,7 +263,7 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR)
         print(string)
         write(DIR, string)
         sampler = DWaveSampler(solver={'topology__type' : 'pegasus'},vartype={'vartype' : 'SPIN'})
-        vertex = get_active(sampler, n)
+        vertex = get_active(sampler, n)        
         #print(vertex)
         #sampler = LeapHybridSampler()
         I = np.identity(n)
@@ -383,11 +398,11 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR)
             
             i = i + 1
         except KeyboardInterrupt:
-            sum_time = sum_time + (time.time() - start_time)
+            #sum_time = sum_time + (time.time() - start_time)
             break
 
     converted = datetime.timedelta(seconds=sum_time)  
-    conv = datetime.timedelta(seconds=(sum_time/i))  
+    conv = datetime.timedelta(seconds=(sum_time/(i-1)))  
     string = "Tempo medio per iterazione: "+str(conv)+"\nTempo totale: "+str(converted)+"\n"
     print(string)
     write(DIR, string)
