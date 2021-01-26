@@ -6,6 +6,7 @@ import numpy as np
 from scipy import sparse
 from QA4QUBO.script import annealer
 from dwave.system.samplers import DWaveSampler#, LeapHybridSampler
+from dwave.cloud import Client
 from dwave.system.composites import EmbeddingComposite
 import datetime
 
@@ -135,7 +136,7 @@ def g(Q, A, oldperm, pr):
 def h(vect, pr): 
     n = len(vect)
     for i in range(n):
-        print(vect[i])
+        #print(vect[i])
         if make_decision(pr):
             #print(f"vect[{i}] = - {vect[i]}")
             vect[i] = -(vect[i])
@@ -214,8 +215,7 @@ def matrix_to_dict(matrix, nodelist):
     for i in range(n):
         keys = list(nodelist.keys())
         key = keys[i]
-        if matrix[i][i] != 0:
-            m_t_ret[key,key] = matrix[i][i]
+        m_t_ret[key,key] = matrix[i][i]
 
     j = 0
     j_max = 0
@@ -231,7 +231,8 @@ def matrix_to_dict(matrix, nodelist):
                 pass
             j += 1
         j_max += 1
-
+    
+    #print(m_t_ret)
     return m_t_ret
 
 def get_active(sampler, n):
@@ -262,7 +263,9 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR)
         string = "\n---------- Started Algorithm ----------\n"
         print(string)
         write(DIR, string)
-        sampler = DWaveSampler(solver={'topology__type' : 'pegasus'},vartype={'vartype' : 'SPIN'})
+        client = Client.from_config(token='DEV-5b447a478873ef8dcce08e7d3e03daed3335de8e', endpoint='https://cloud.dwavesys.com/sapi')
+        sampler = DWaveSampler(solver={'topology__type' : 'pegasus', 'qpu' : True})
+        #sampler = client.get_solver()
         vertex = get_active(sampler, n)        
         #print(vertex)
         #sampler = LeapHybridSampler()
@@ -407,4 +410,5 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR)
     print(string)
     write(DIR, string)
 
+    client.close()
     return np.atleast_2d(np.atleast_2d(z_star).T).T
