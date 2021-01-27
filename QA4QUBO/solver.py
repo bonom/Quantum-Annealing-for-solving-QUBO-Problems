@@ -217,26 +217,40 @@ def matrix_to_dict(matrix, nodelist):
 def matrix_to_dict(matrix, nodelist):
     n = len(matrix)
     m_t_ret = dict()
-    for i in range(n):
-        keys = list(nodelist.keys())
-        key = keys[i]
-        m_t_ret[key,key] = matrix[i][i]
-
-    j = 0
-    j_max = 0
-    for i in range(n):
-        while j < j_max:
+    if nodelist:
+        for i in range(n):
             keys = list(nodelist.keys())
             key = keys[i]
-            values = nodelist[key]
-            try:
-                m_t_ret[key,values[0]] = matrix[i][j]
-                nodelist[key].remove(values[0])
-            except:
-                pass
-            j += 1
-        j_max += 1
+            m_t_ret[key,key] = matrix[i][i]
+
+        j = 0
+        j_max = 0
+        for i in range(n):
+            while j < j_max:
+                keys = list(nodelist.keys())
+                key = keys[i]
+                values = nodelist[key]
+                try:
+                    m_t_ret[key,values[0]] = matrix[i][j]
+                    nodelist[key].remove(values[0])
+                except:
+                    pass
+                j += 1
+            j_max += 1
     
+    else:
+        for i in range(n):
+            m_t_ret[i,i] = matrix[i][i]
+            j = 0
+            j_max = 0
+            while(j < j_max):
+                if matrix[i][j] != 0:
+                    m_t_ret[i,j] = matrix[i][j]
+                    m_t_ret[j,i] = matrix[j][i]
+                j += 1
+            j_max += 1
+
+
     #print(m_t_ret)
     return m_t_ret
 
@@ -268,12 +282,13 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR,
         string = "\n---------- Started Algorithm ----------\n"
         print(string)
         write(DIR, string)
-        if (not sim):
-            sampler = DWaveSampler(solver={'topology__type' : 'pegasus', 'qpu' : True})
-        else:
+        if (sim):
             sampler = neal.SimulatedAnnealingSampler()
-        #sampler = client.get_solver()
-        vertex = get_active(sampler, n)        
+        else:
+            sampler = DWaveSampler(solver={'topology__type' : 'pegasus', 'qpu' : True})
+            vertex = get_active(sampler, n) 
+            
+        #sampler = client.get_solver()       
 
         I = np.identity(n)
         p = 1
@@ -286,7 +301,7 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR,
             write(DIR, string)
             start = time.time()
             if (sim):
-                z_one = map_back(annealer(matrix_to_dict(Theta_one), sampler, kindex), m_one)
+                z_one = map_back(annealer(matrix_to_dict(Theta_one, dict()), sampler, kindex), m_one)
             else:
                 z_one = map_back(annealer(matrix_to_dict(Theta_one, vertex.copy()), sampler, kindex), m_one)
             convert_1 = datetime.timedelta(seconds=(time.time()-start))
@@ -295,7 +310,7 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR,
             write(DIR, string)
             start = time.time()
             if(sim):
-                z_one = map_back(annealer(matrix_to_dict(Theta_one), sampler, kindex), m_one)
+                z_two = map_back(annealer(matrix_to_dict(Theta_two, dict()), sampler, kindex), m_two)
             else:
                 z_two = map_back(annealer(matrix_to_dict(Theta_two, vertex.copy()), sampler, kindex), m_two)
             convert_2 = datetime.timedelta(seconds=(time.time()-start))
@@ -305,6 +320,7 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR,
 
         f_one = function_f(Q, z_one).item()
         f_two = function_f(Q, z_two).item()
+
         if (f_one < f_two):
             z_star = z_one
             f_star = f_one
@@ -353,7 +369,10 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR,
                 print(string,end=' ')
                 write(DIR, string)
                 start = time.time()
-                z_prime = map_back(annealer(matrix_to_dict(Theta_prime, vertex.copy()), sampler, kindex), m)
+                if(sim):
+                    z_prime = map_back(annealer(matrix_to_dict(Theta_prime, dict()), sampler, kindex), m)
+                else:
+                    z_prime = map_back(annealer(matrix_to_dict(Theta_prime, vertex.copy()), sampler, kindex), m)
                 convert_z = datetime.timedelta(seconds=(time.time()-start))
                 string = "Ended in "+str(convert_z)+" ."
                 print(string)
@@ -430,6 +449,5 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR,
     string = "Tempo medio per iterazione: "+str(conv)+"\nTempo totale: "+str(converted)+"\n"
     print(string)
     write(DIR, string)
-
-    client.close()
+    
     return np.atleast_2d(np.atleast_2d(z_star).T).T
