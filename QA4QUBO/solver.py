@@ -6,9 +6,9 @@ import numpy as np
 from scipy import sparse
 from QA4QUBO.script import annealer
 from dwave.system.samplers import DWaveSampler#, LeapHybridSampler
-from dwave.cloud import Client
 from dwave.system.composites import EmbeddingComposite
 import datetime
+import neal
 
 import sys
 np.set_printoptions(threshold=sys.maxsize)
@@ -263,17 +263,18 @@ def get_active(sampler, n):
     return nodes
 
 
-def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR):
+def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR, sim):
     try:    
         string = "\n---------- Started Algorithm ----------\n"
         print(string)
         write(DIR, string)
-        client = Client.from_config(token='DEV-5b447a478873ef8dcce08e7d3e03daed3335de8e', endpoint='https://cloud.dwavesys.com/sapi')
-        sampler = DWaveSampler(solver={'topology__type' : 'pegasus', 'qpu' : True})
+        if (not sim):
+            sampler = DWaveSampler(solver={'topology__type' : 'pegasus', 'qpu' : True})
+        else:
+            sampler = neal.SimulatedAnnealingSampler()
         #sampler = client.get_solver()
         vertex = get_active(sampler, n)        
-        #print(vertex)
-        #sampler = LeapHybridSampler()
+
         I = np.identity(n)
         p = 1
         Theta_one, m_one = g(Q, A, np.arange(n), p)
@@ -284,13 +285,19 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR)
             print(string, end = ' ')
             write(DIR, string)
             start = time.time()
-            z_one = map_back(annealer(matrix_to_dict(Theta_one, vertex.copy()), sampler, kindex), m_one)
+            if (sim):
+                z_one = map_back(annealer(matrix_to_dict(Theta_one), sampler, kindex), m_one)
+            else:
+                z_one = map_back(annealer(matrix_to_dict(Theta_one, vertex.copy()), sampler, kindex), m_one)
             convert_1 = datetime.timedelta(seconds=(time.time()-start))
             string = "Ended in "+str(convert_1)+" .\nWorking on z2..."
             print(string, end = ' ')
             write(DIR, string)
             start = time.time()
-            z_two = map_back(annealer(matrix_to_dict(Theta_two, vertex.copy()), sampler, kindex), m_two)
+            if(sim):
+                z_one = map_back(annealer(matrix_to_dict(Theta_one), sampler, kindex), m_one)
+            else:
+                z_two = map_back(annealer(matrix_to_dict(Theta_two, vertex.copy()), sampler, kindex), m_two)
             convert_2 = datetime.timedelta(seconds=(time.time()-start))
             string = "Ended in "+str(convert_2)+" ."
             print(string)
