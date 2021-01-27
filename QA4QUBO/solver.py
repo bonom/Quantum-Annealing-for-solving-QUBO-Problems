@@ -10,6 +10,10 @@ from dwave.cloud import Client
 from dwave.system.composites import EmbeddingComposite
 import datetime
 
+import sys
+np.set_printoptions(threshold=sys.maxsize)
+
+
 def function_f(Q, x):
     return np.matmul(np.matmul(np.atleast_2d(x).T, Q), x)
 
@@ -152,6 +156,7 @@ def write(dir, string):
     file = open(dir, 'a')
     file.write(string+'\n')
     file.close()
+
 """
 def matrix_to_dict(matrix):
     n = len(matrix)
@@ -321,6 +326,12 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR)
 
     sum_time = 0
     
+    dir = DIR+"_matrix.txt"
+    file = open(dir, 'a')
+    for row in Q:
+        file.write(str(row)+'\n')
+    file.close()
+
     while True:
         start_time = time.time()
         try:
@@ -385,7 +396,10 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR)
                 print(string)
                 write(DIR, string)
                 #print(f"-- -- Ciclo {i}/{i_max} -- --\n\nNon ci sono variazioni di f, z\ne = {e}, d = {d}, Nmax = {N_max} e dmin = {d_min}\nCi ho messo {time.time()-start_time} secondi\n")
-                    
+            dir = DIR+"_vector.txt"
+            file = open(dir, 'w')
+            file.write(str(np.atleast_2d(z_star).T)+'\n')
+            file.close()
             sum_time = sum_time + (time.time() - start_time)
 
             if ((i == i_max) or ((e + d >= N_max) and (d < d_min))):
