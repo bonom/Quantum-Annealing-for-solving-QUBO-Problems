@@ -4,6 +4,7 @@ import time
 import random
 import numpy as np
 from scipy import sparse
+from QA4QUBO.matrix import generate_chimera, generate_pegasus
 from QA4QUBO.script import annealer
 from dwave.system.samplers import DWaveSampler#, LeapHybridSampler
 from dwave.system.composites import EmbeddingComposite
@@ -119,7 +120,7 @@ def map_back(z, perm):
 
     return z_ret
 
-def g(Q, A, oldperm, pr):
+def g(Q, A, oldperm, pr, sim):
     n = len(Q)
     m = dict()
     for i in range(n):
@@ -130,19 +131,31 @@ def g(Q, A, oldperm, pr):
 
     perm = fill(m, oldperm, n)
     inversed = inverse(perm, n)
-    Theta = [[0 for col in range(n)] for row in range(n)]
-    for row, col in A:
-        k = inversed[row]
-        l = inversed[col]
-        Theta[row][col] = Q[k][l]
+    Theta = dict()
+
+    if (sim):
+        for row, col in A:
+            k = inversed[row]
+            l = inversed[col]
+            Theta[row,col] = Q[k][l]
+    else:
+        i = 0
+        for key in list(A.keys()):
+            k = inversed[i]
+            Theta[key,key] = Q[k][k]
+            j = 0
+            for elem in A[key]:
+                l = inversed[j]
+                Theta[key,elem] = Q[k][l]
+                j += 1
+            i += 1
+
     return Theta, perm
 
 def h(vect, pr): 
     n = len(vect)
     for i in range(n):
-        #print(vect[i])
         if make_decision(pr):
-            #print(f"vect[{i}] = - {vect[i]}")
             vect[i] = -(vect[i])
     return vect
 
@@ -156,101 +169,6 @@ def write(dir, string):
     file = open(dir, 'a')
     file.write(string+'\n')
     file.close()
-
-"""
-def matrix_to_dict(matrix):
-    n = len(matrix)
-    j_max = 0
-    j = 0
-    m_t_dict = dict()
-    for i in range(n):
-        j_max += 1
-        while j < j_max:
-            if matrix[i][j] != 0:
-                m_t_dict[i,j] = matrix[i][j]
-                m_t_dict[j,i] = matrix[j][i]
-            j += 1
-        j = 0
-    
-    return m_t_dict
-"""
-"""
-def matrix_to_dict(matrix, nodelist):
-    n = len(matrix)
-    m_t_ret = dict()
-    j_max = 0
-    keys = list(nodelist.keys())
-    for i in range(n):
-        try:
-            key = keys[i]
-        except:
-            print(f"Error on i = {i}, len = {len(keys)}")
-            exit()
-        if matrix[i][i] != 0:
-            m_t_ret[key,key] = matrix[i][i]
-    
-    keys = list(nodelist.keys())
-    key = keys[0]
-    for i in range(n):
-        j = 0
-        while j < j_max:
-            #print(f"[{i}.{j}], [{j_max}] --> {matrix[i][j]}, \n!!!{nodelist}!!!")
-            if matrix[i][j] != 0:
-                values = list(nodelist[key])
-                while(len(values) == 0):
-                    del nodelist[key]
-                    keys = list(nodelist.keys())
-                    if len(keys) != 0:
-                        key = keys[0]
-                        values = list(nodelist[key])
-                    else:
-                        print(f"We have a problem from {i}.{j}")
-                        exit()
-                        
-                m_t_ret[key,values[0]] = matrix[i][j]
-                nodelist[key].remove(values[0])
-            j += 1
-        j_max += 1
-
-    return m_t_ret
-"""
-def matrix_to_dict(matrix, nodelist):
-    n = len(matrix)
-    m_t_ret = dict()
-    if(nodelist):
-        for i in range(n):
-            keys = list(nodelist.keys())
-            key = keys[i]
-            m_t_ret[key,key] = matrix[i][i]
-
-        j_max = 0
-        for i in range(n):
-            j = 0
-            while j < j_max:
-                keys = list(nodelist.keys())
-                key = keys[i]
-                values = nodelist[key]
-                try:
-                    m_t_ret[key,values[0]] = matrix[i][j]
-                    nodelist[key].remove(values[0])
-                except:
-                    pass
-                j += 1
-            j_max += 1
-    else:
-        j_max = 0
-        for i in range(n):
-            m_t_ret[i,i] = matrix[i][i]
-            j = 0
-            while j < j_max:
-                if(matrix[i][j] != 0):
-                    m_t_ret[i,j] = matrix[i][j]
-                    m_t_ret[j,i] = matrix[j][i]
-                j += 1
-            j_max += 1
-
-    #print(m_t_ret)
-    return m_t_ret
 
 def get_active(sampler, n):
     nodes = dict()
@@ -275,45 +193,64 @@ def get_active(sampler, n):
     return nodes
 
 
-def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR, sim):
+def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, Q, DIR, sim):
     try:    
         if (not sim):
-            string = "\n---------- Started Algorithm in Quantum Mode----------\n"
+            string = "\n---------- Started Algorithm in Quantum Mode ----------\n"
             print(string)
             write(DIR, string)
-            sampler = DWaveSampler(solver={'topology__type' : 'pegasus', 'qpu' : True})
-            vertex = get_active(sampler, n)   
+            sampler = DWaveSampler(solver={'topology__type' : topology, 'qpu' : True})
+            A = get_active(sampler, n)   
         else:
-            string = "\n---------- Started Algorithm in Simulating Mode ----------\n"
+            string = "\n---------- Started Algorithm in Simulating Mode ----------"
             print(string)
             write(DIR, string)
-            sampler = neal.SimulatedAnnealingSampler()
-        #sampler = client.get_solver()
-             
+            sampler = neal.SimulatedAnnealingSampler()    
+            
+            if(topology == 'chimera'):
+                string = "----------        Using Chimera Topology        ----------\n"
+                print(string)
+                write(DIR, string)
+                if(n > 2048):
+                    n = int(input(f"WARNING: {n} inserted value is bigger than max topology size (2048), please insert a valid n or press any key to exit: "))
+                try:
+                    A = generate_chimera(n)
+                except:
+                    exit()
+            else:
+                string = "----------        Using Pegasus Topology        ----------\n"
+                print(string)
+                write(DIR, string)
+                A = generate_pegasus(n)
 
+        dir = DIR+"_matrix.txt"
+        file = open(dir, 'a')
+        i = 0
+        for row in Q:
+            i += 1
+            print(f"--- Printing Q in file './{dir}' ... {int((i/n)*100)} %", end='\r')
+            file.write(str(row)+'\n')
+            
+        print(f"--- Printing Q in file './{dir}' END ---  ")
+        file.close()
+        
         I = np.identity(n)
         p = 1
-        Theta_one, m_one = g(Q, A, np.arange(n), p)
-        Theta_two, m_two = g(Q, A, np.arange(n), p)
+        Theta_one, m_one = g(Q, A, np.arange(n), p, sim)
+        Theta_two, m_two = g(Q, A, np.arange(n), p, sim)
 
         #for kindex in range(1, k+1):
         string  = "Working on z1..."
         print(string, end = ' ')
         write(DIR, string)
         start = time.time()
-        if (sim):
-            z_one = map_back(annealer(matrix_to_dict(Theta_one, dict()), sampler, k), m_one)
-        else:
-            z_one = map_back(annealer(matrix_to_dict(Theta_one, vertex.copy()), sampler, k), m_one)
+        z_one = map_back(annealer(Theta_one, sampler, k), m_one)
         convert_1 = datetime.timedelta(seconds=(time.time()-start))
         string = "Ended in "+str(convert_1)+" .\nWorking on z2..."
         print(string, end = ' ')
         write(DIR, string)
         start = time.time()
-        if(sim):
-            z_two = map_back(annealer(matrix_to_dict(Theta_two, dict()), sampler, k), m_two)
-        else:
-            z_two = map_back(annealer(matrix_to_dict(Theta_two, vertex.copy()), sampler, k), m_two)
+        z_two = map_back(annealer(Theta_two, sampler, k), m_two)
         convert_2 = datetime.timedelta(seconds=(time.time()-start))
         string = "Ended in "+str(convert_2)+" ."
         print(string)
@@ -348,12 +285,6 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR,
     lam = lambda_zero
 
     sum_time = 0
-    
-    dir = DIR+"_matrix.txt"
-    file = open(dir, 'a')
-    for row in Q:
-        file.write(str(row)+'\n')
-    file.close()
 
     while True:
         start_time = time.time()
@@ -362,17 +293,14 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR,
             if (i % N == 0):
                 p = p - ((p - p_delta)*eta)
 
-            Theta_prime, m = g(Q_prime, A, m_star, p)
+            Theta_prime, m = g(Q_prime, A, m_star, p, sim)
 
             #for kindex in range(1, k+1):
             string = "Working on z'..."
             print(string,end=' ')
             write(DIR, string)
             start = time.time()
-            if(sim):
-                z_prime = map_back(annealer(matrix_to_dict(Theta_prime, dict()), sampler, k), m)
-            else:
-                z_prime = map_back(annealer(matrix_to_dict(Theta_prime, vertex.copy()), sampler, k), m)
+            z_prime = map_back(annealer(Theta_prime, sampler, k), m)
             convert_z = datetime.timedelta(seconds=(time.time()-start))
             string = "Ended in "+str(convert_z)+" ."
             print(string)

@@ -87,15 +87,6 @@ def main(_n):
     QAP = False
     S = vector.generate_S(_n, max_range)
     _Q, c = matrix.generate_QUBO_problem(S)
-    """
-    if(input("Do you want to use chimera or pegasus? (c = chimera, p = pegasus) ") in ['C', 'c']):
-        print("Will generate a chimera topology")
-        _A = matrix.generate_chimera(_n)
-    else:
-        print("Will generate a pegasus topology")
-        _A = matrix.generate_pegasus(_n)
-    """
-    _A = matrix.generate_pegasus(_n)
 
     string = " ---------- Problem start ----------\n"
     print(string)
@@ -106,28 +97,7 @@ def main(_n):
         #print(string)
         write(_DIR, string)
     
-
-    view = False
-    """
-    if (_n > 16):
-        if(input(f"n is very big ({_n}), do you still want to see Q and A? (y/n) ") in ['y', 'Y', 1, 's', 'S']):
-            view = True
-        else:
-            view = False
-    """
-    if view:
-        string = " ---------- Q ---------- \n"
-        print(string)
-        write(_DIR, string)
-        for row in _Q:
-            string = str(row)
-            print(row)
-            write(_DIR, string)
-        string = "\n---------- A ----------\n"+str(_A)+"\n -----------------------"
-        print(string)
-        write(_DIR, string)
-    
-    z = solver.solve(d_min = 70, eta = 0.01, i_max = 1000, k = 3, lambda_zero = 1.0, n = _n, N = 20, N_max = 100, p_delta = 0.2, q = 0.1, A = _A, Q = _Q, DIR = _DIR, sim = False)
+    z = solver.solve(d_min = 70, eta = 0.01, i_max = 1000, k = 3, lambda_zero = 1.0, n = _n, N = 20, N_max = 100, p_delta = 0.2, q = 0.1, topology = 'pegasus', Q = _Q, DIR = _DIR, sim = False)
     min_z = solver.function_f(_Q,z).item()
     string = "So far we found:\n- z - \n"+str(np.atleast_2d(z).T)+"\nand has minimum = "+str(min_z)+"\n"
     try:
