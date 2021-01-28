@@ -265,43 +265,47 @@ def get_active(sampler, n):
 
 def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR, sim):
     try:    
-        string = "\n---------- Started Algorithm ----------\n"
-        print(string)
-        write(DIR, string)
         if (not sim):
+            string = "\n---------- Started Algorithm in Quantum Mode----------\n"
+            print(string)
+            write(DIR, string)
             sampler = DWaveSampler(solver={'topology__type' : 'pegasus', 'qpu' : True})
+            vertex = get_active(sampler, n)   
         else:
+            string = "\n---------- Started Algorithm in Simulating Mode ----------\n"
+            print(string)
+            write(DIR, string)
             sampler = neal.SimulatedAnnealingSampler()
         #sampler = client.get_solver()
-        vertex = get_active(sampler, n)        
+             
 
         I = np.identity(n)
         p = 1
         Theta_one, m_one = g(Q, A, np.arange(n), p)
         Theta_two, m_two = g(Q, A, np.arange(n), p)
 
-        for kindex in range(1, k+1):
-            string  = "Working on z1..."
-            print(string, end = ' ')
-            write(DIR, string)
-            start = time.time()
-            if (sim):
-                z_one = map_back(annealer(matrix_to_dict(Theta_one), sampler, kindex), m_one)
-            else:
-                z_one = map_back(annealer(matrix_to_dict(Theta_one, vertex.copy()), sampler, kindex), m_one)
-            convert_1 = datetime.timedelta(seconds=(time.time()-start))
-            string = "Ended in "+str(convert_1)+" .\nWorking on z2..."
-            print(string, end = ' ')
-            write(DIR, string)
-            start = time.time()
-            if(sim):
-                z_one = map_back(annealer(matrix_to_dict(Theta_one), sampler, kindex), m_one)
-            else:
-                z_two = map_back(annealer(matrix_to_dict(Theta_two, vertex.copy()), sampler, kindex), m_two)
-            convert_2 = datetime.timedelta(seconds=(time.time()-start))
-            string = "Ended in "+str(convert_2)+" ."
-            print(string)
-            write(DIR, string)
+        #for kindex in range(1, k+1):
+        string  = "Working on z1..."
+        print(string, end = ' ')
+        write(DIR, string)
+        start = time.time()
+        if (sim):
+            z_one = map_back(annealer(matrix_to_dict(Theta_one), sampler, k), m_one)
+        else:
+            z_one = map_back(annealer(matrix_to_dict(Theta_one, vertex.copy()), sampler, k), m_one)
+        convert_1 = datetime.timedelta(seconds=(time.time()-start))
+        string = "Ended in "+str(convert_1)+" .\nWorking on z2..."
+        print(string, end = ' ')
+        write(DIR, string)
+        start = time.time()
+        if(sim):
+            z_two = map_back(annealer(matrix_to_dict(Theta_two), sampler, k), m_two)
+        else:
+            z_two = map_back(annealer(matrix_to_dict(Theta_two, vertex.copy()), sampler, k), m_two)
+        convert_2 = datetime.timedelta(seconds=(time.time()-start))
+        string = "Ended in "+str(convert_2)+" ."
+        print(string)
+        write(DIR, string)
 
         f_one = function_f(Q, z_one).item()
         f_two = function_f(Q, z_two).item()
@@ -348,17 +352,17 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR,
 
             Theta_prime, m = g(Q_prime, A, m_star, p)
 
-            for kindex in range(1, k+1):
-                string = "Working on z'..."
-                print(string,end=' ')
-                write(DIR, string)
-                start = time.time()
-                z_prime = map_back(annealer(matrix_to_dict(Theta_prime, vertex.copy()), sampler, kindex), m)
-                convert_z = datetime.timedelta(seconds=(time.time()-start))
-                string = "Ended in "+str(convert_z)+" ."
-                print(string)
-                write(DIR, string)
-                #z_prime = run_annealer(Theta_prime, sampler)
+            #for kindex in range(1, k+1):
+            string = "Working on z'..."
+            print(string,end=' ')
+            write(DIR, string)
+            start = time.time()
+            z_prime = map_back(annealer(matrix_to_dict(Theta_prime, vertex.copy()), sampler, k), m)
+            convert_z = datetime.timedelta(seconds=(time.time()-start))
+            string = "Ended in "+str(convert_z)+" ."
+            print(string)
+            write(DIR, string)
+            #z_prime = run_annealer(Theta_prime, sampler)
 
             if make_decision(q):
                 z_prime = h(z_prime, q)

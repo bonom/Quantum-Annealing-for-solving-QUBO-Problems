@@ -127,7 +127,7 @@ def main(_n):
         print(string)
         write(_DIR, string)
     
-    z = solver.solve(d_min = 70, eta = 0.01, i_max = 1000, k = 3, lambda_zero = 1.0, n = _n, N = 20, N_max = 100, p_delta = 0.2, q = 0.1, A = _A, Q = _Q, DIR = _DIR, sim = True)
+    z = solver.solve(d_min = 70, eta = 0.01, i_max = 1000, k = 3, lambda_zero = 1.0, n = _n, N = 20, N_max = 100, p_delta = 0.2, q = 0.1, A = _A, Q = _Q, DIR = _DIR, sim = False)
     min_z = solver.function_f(_Q,z).item()
     string = "So far we found:\n- z - \n"+str(np.atleast_2d(z).T)+"\nand has minimum = "+str(min_z)+"\n"
     try:
