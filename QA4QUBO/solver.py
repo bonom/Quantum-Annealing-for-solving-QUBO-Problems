@@ -351,8 +351,8 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
                 write(DIR, string)
                 #print(f"-- -- Ciclo {i}/{i_max} -- --\n\nNon ci sono variazioni di f, z\ne = {e}, d = {d}, Nmax = {N_max} e dmin = {d_min}\nCi ho messo {time.time()-start_time} secondi\n")
             dir = DIR+"_vector.txt"
-            file = open(dir, 'w')
-            file.write(str(np.atleast_2d(z_star).T)+'\n')
+            file = open(dir, 'a')
+            file.write("Ciclo "+str(i)+'\n'+str(np.atleast_2d(z_star).T)+'\n\n')
             file.close()
             sum_time = sum_time + (time.time() - start_time)
 
