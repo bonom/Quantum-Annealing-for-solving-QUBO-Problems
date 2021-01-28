@@ -217,26 +217,40 @@ def matrix_to_dict(matrix, nodelist):
 def matrix_to_dict(matrix, nodelist):
     n = len(matrix)
     m_t_ret = dict()
-    for i in range(n):
-        keys = list(nodelist.keys())
-        key = keys[i]
-        m_t_ret[key,key] = matrix[i][i]
-
-    j = 0
-    j_max = 0
-    for i in range(n):
-        while j < j_max:
+    if nodelist:
+        for i in range(n):
             keys = list(nodelist.keys())
             key = keys[i]
-            values = nodelist[key]
-            try:
-                m_t_ret[key,values[0]] = matrix[i][j]
-                nodelist[key].remove(values[0])
-            except:
-                pass
-            j += 1
-        j_max += 1
+            m_t_ret[key,key] = matrix[i][i]
+
+        j = 0
+        j_max = 0
+        for i in range(n):
+            while j < j_max:
+                keys = list(nodelist.keys())
+                key = keys[i]
+                values = nodelist[key]
+                try:
+                    m_t_ret[key,values[0]] = matrix[i][j]
+                    nodelist[key].remove(values[0])
+                except:
+                    pass
+                j += 1
+            j_max += 1
     
+    else:
+        for i in range(n):
+            m_t_ret[i,i] = matrix[i][i]
+            j = 0
+            j_max = 0
+            while(j < j_max):
+                if matrix[i][j] != 0:
+                    m_t_ret[i,j] = matrix[i][j]
+                    m_t_ret[j,i] = matrix[j][i]
+                j += 1
+            j_max += 1
+
+
     #print(m_t_ret)
     return m_t_ret
 
@@ -265,6 +279,7 @@ def get_active(sampler, n):
 
 def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR, sim):
     try:    
+<<<<<<< HEAD
         if (not sim):
             string = "\n---------- Started Algorithm in Quantum Mode----------\n"
             print(string)
@@ -278,12 +293,25 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR,
             sampler = neal.SimulatedAnnealingSampler()
         #sampler = client.get_solver()
              
+=======
+        string = "\n---------- Started Algorithm ----------\n"
+        print(string)
+        write(DIR, string)
+        if (sim):
+            sampler = neal.SimulatedAnnealingSampler()
+        else:
+            sampler = DWaveSampler(solver={'topology__type' : 'pegasus', 'qpu' : True})
+            vertex = get_active(sampler, n) 
+            
+        #sampler = client.get_solver()       
+>>>>>>> b86737edada052397c8ebf18fe8bd38643fa34e4
 
         I = np.identity(n)
         p = 1
         Theta_one, m_one = g(Q, A, np.arange(n), p)
         Theta_two, m_two = g(Q, A, np.arange(n), p)
 
+<<<<<<< HEAD
         #for kindex in range(1, k+1):
         string  = "Working on z1..."
         print(string, end = ' ')
@@ -306,9 +334,34 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR,
         string = "Ended in "+str(convert_2)+" ."
         print(string)
         write(DIR, string)
+=======
+        for kindex in range(1, k+1):
+            string  = "Working on z1..."
+            print(string, end = ' ')
+            write(DIR, string)
+            start = time.time()
+            if (sim):
+                z_one = map_back(annealer(matrix_to_dict(Theta_one, dict()), sampler, kindex), m_one)
+            else:
+                z_one = map_back(annealer(matrix_to_dict(Theta_one, vertex.copy()), sampler, kindex), m_one)
+            convert_1 = datetime.timedelta(seconds=(time.time()-start))
+            string = "Ended in "+str(convert_1)+" .\nWorking on z2..."
+            print(string, end = ' ')
+            write(DIR, string)
+            start = time.time()
+            if(sim):
+                z_two = map_back(annealer(matrix_to_dict(Theta_two, dict()), sampler, kindex), m_two)
+            else:
+                z_two = map_back(annealer(matrix_to_dict(Theta_two, vertex.copy()), sampler, kindex), m_two)
+            convert_2 = datetime.timedelta(seconds=(time.time()-start))
+            string = "Ended in "+str(convert_2)+" ."
+            print(string)
+            write(DIR, string)
+>>>>>>> b86737edada052397c8ebf18fe8bd38643fa34e4
 
         f_one = function_f(Q, z_one).item()
         f_two = function_f(Q, z_two).item()
+
         if (f_one < f_two):
             z_star = z_one
             f_star = f_one
@@ -352,6 +405,7 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR,
 
             Theta_prime, m = g(Q_prime, A, m_star, p)
 
+<<<<<<< HEAD
             #for kindex in range(1, k+1):
             string = "Working on z'..."
             print(string,end=' ')
@@ -363,6 +417,22 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR,
             print(string)
             write(DIR, string)
             #z_prime = run_annealer(Theta_prime, sampler)
+=======
+            for kindex in range(1, k+1):
+                string = "Working on z'..."
+                print(string,end=' ')
+                write(DIR, string)
+                start = time.time()
+                if(sim):
+                    z_prime = map_back(annealer(matrix_to_dict(Theta_prime, dict()), sampler, kindex), m)
+                else:
+                    z_prime = map_back(annealer(matrix_to_dict(Theta_prime, vertex.copy()), sampler, kindex), m)
+                convert_z = datetime.timedelta(seconds=(time.time()-start))
+                string = "Ended in "+str(convert_z)+" ."
+                print(string)
+                write(DIR, string)
+                #z_prime = run_annealer(Theta_prime, sampler)
+>>>>>>> b86737edada052397c8ebf18fe8bd38643fa34e4
 
             if make_decision(q):
                 z_prime = h(z_prime, q)
@@ -434,6 +504,5 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, A, Q, DIR,
     string = "Tempo medio per iterazione: "+str(conv)+"\nTempo totale: "+str(converted)+"\n"
     print(string)
     write(DIR, string)
-
-    client.close()
+    
     return np.atleast_2d(np.atleast_2d(z_star).T).T
