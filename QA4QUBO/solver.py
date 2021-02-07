@@ -16,7 +16,7 @@ np.set_printoptions(threshold=sys.maxsize)
 
 
 def function_f(Q, x):
-    return np.matmul(np.matmul(np.atleast_2d(x).T, Q), x)
+    return np.matmul(np.matmul(x, Q), np.atleast_2d(x).T)
 
 def make_decision(probability):
     return random.random() < probability 
@@ -106,14 +106,14 @@ def inverse(perm, n):
     return inverted
 
 def map_back(z, perm):
-    n = len(perm)
+    n = len(z)
     inverted = inverse(perm, n)
 
     z_ret = [0 for i in range(n)]
 
     for i in range(n):
         try:
-            z_ret[i] = z[inverted[i]]
+            z_ret[i] = int(z[inverted[i]])
         except:
             print(f"Error on i = {i} -> z_ret{len(z_ret)} and inverted{len(inverted)} and perm{len(perm)} and z{len(z)}")
             exit()
@@ -153,10 +153,18 @@ def g(Q, A, oldperm, pr, sim):
     return Theta, perm
 
 def h(vect, pr): 
+    
     n = len(vect)
-    for i in range(n):
-        if make_decision(pr):
-            vect[i] = -(vect[i])
+    
+    if [-1] in vect:
+        for i in range(n):
+            if make_decision(pr):
+                vect[i] = -(vect[i])
+    else:
+        for i in range(n):
+            if make_decision(pr):
+                vect[i] = int((vect[i]+1)%2)
+
     return vect
 
 def sim_ann(p, f_prime, f_star):
@@ -199,7 +207,7 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
             string = "\n---------- Started Algorithm in Quantum Mode ----------\n"
             print(string)
             write(DIR, string)
-            sampler = DWaveSampler(solver={'topology__type' : topology, 'qpu' : True})
+            sampler = DWaveSampler(solver={'topology__type' : topology, 'qpu' : True, 'annealing_time' : 0.001})
             A = get_active(sampler, n)   
         else:
             string = "\n---------- Started Algorithm in Simulating Mode ----------"
@@ -238,8 +246,7 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
         p = 1
         Theta_one, m_one = g(Q, A, np.arange(n), p, sim)
         Theta_two, m_two = g(Q, A, np.arange(n), p, sim)
-
-        #for kindex in range(1, k+1):
+        
         string  = "Working on z1..."
         print(string, end = ' ')
         write(DIR, string)
@@ -258,6 +265,7 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
 
         f_one = function_f(Q, z_one).item()
         f_two = function_f(Q, z_two).item()
+
         if (f_one < f_two):
             z_star = z_one
             f_star = f_one
@@ -308,22 +316,28 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
             #z_prime = run_annealer(Theta_prime, sampler)
 
             if make_decision(q):
+                #print(f"Ho fatto la h con {z_prime}")
                 z_prime = h(z_prime, q)
 
             if (z_prime == z_star) == False:
                 f_prime = function_f(Q, z_prime).item()
                 if (f_prime < f_star):
-                    z_prime, z_star = z_star, z_prime
+                    tmp = z_prime.copy()
+                    z_prime = z_star.copy()
+                    z_star = tmp.copy()
                     f_star = f_prime
                     m_star = m
                     e = 0
                     d = 0
                     S = S + ((np.outer(z_prime, z_prime) - I) + np.diagflat(z_prime))
+                    
                 else:
                     d = d + 1
                     #if make_decision(sim_ann((p - p_delta), f_prime, f_star)): #
                     if make_decision((p-p_delta)**(f_prime-f_star)):
-                        z_prime, z_star = z_star, z_prime
+                        tmp = z_prime.copy()
+                        z_prime = z_star.copy()
+                        z_star = tmp.copy()
                         f_star = f_prime
                         m_star = m
                         e = 0
@@ -373,9 +387,12 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
             break
 
     converted = datetime.timedelta(seconds=sum_time)  
-    conv = datetime.timedelta(seconds=(sum_time/(i-1)))  
+    if i != 1:
+        conv = datetime.timedelta(seconds=(sum_time/(i-1))) 
+    else:
+        conv = datetime.timedelta(seconds=(sum_time)) 
     string = "Tempo medio per iterazione: "+str(conv)+"\nTempo totale: "+str(converted)+"\n"
     print(string)
     write(DIR, string)
 
-    return np.atleast_2d(np.atleast_2d(z_star).T).T
+    return np.atleast_2d(z_star).T

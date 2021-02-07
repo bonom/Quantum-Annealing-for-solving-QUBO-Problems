@@ -1,5 +1,3 @@
-from QA4QUBO.matrix import generate_chimera
 
-n = 2000
-A = generate_chimera(n)
-print(A)
+print((0+1)%2)
+print((2)%2)

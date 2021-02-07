@@ -63,6 +63,8 @@ def main(_n):
             with open("output/"+dir+".txt", "r") as file:
                 pass
             max_range = int(MAX/(2**i))
+            if(not max_range):
+                exit("File output terminati")
             dir = "output_"+str(_n)+"_"+ str(max_range)
             i += 1
         except IOError:
@@ -86,6 +88,9 @@ def main(_n):
     """
     QAP = False
     S = vector.generate_S(_n, max_range)
+    #S = [25, 7, 13, 31, 42, 17, 21, 10]
+    #S = [4,6,1,10,5,3,7,12,9,8]
+    #S = [7, 2, 12, 1, 0, 6, 14, 5, 7, 8, 15, 4, 2, 7, 11, 10]
     _Q, c = matrix.generate_QUBO_problem(S)
 
     string = " ---------- Problem start ----------\n"
@@ -94,14 +99,19 @@ def main(_n):
     
     if not QAP:
         string = "\n S = "+str(S)+"\n"
-        #print(string)
+        print(string)
         write(_DIR, string)
     
-    z = solver.solve(d_min = 70, eta = 0.01, i_max = 1000, k = 3, lambda_zero = 1.0, n = _n, N = 20, N_max = 100, p_delta = 0.2, q = 0.1, topology = 'pegasus', Q = _Q, DIR = _DIR, sim = False)
-    min_z = solver.function_f(_Q,z).item()
+    
+    z = solver.solve(d_min = 70, eta = 0.01, i_max = 1000, k = 3, lambda_zero = 1, n = _n, N = 10, N_max = 100, p_delta = 0.1, q = 0.2, topology = 'pegasus', Q = _Q, DIR = _DIR, sim = False)
+    
+    min_z = solver.function_f(_Q,np.atleast_2d(z).T).item()
+    
     string = "So far we found:\n- z - \n"+str(np.atleast_2d(z).T)+"\nand has minimum = "+str(min_z)+"\n"
+    diff2 = (c*c + 4*min_z)
+
     try:
-        string += "c = "+str(c)+", c^2 = "+str(c**2)+", diff = "+str(c**2 + 4*min_z)+"\n"
+        string += "c = "+str(c)+", c^2 = "+str(c**2)+", diff^2 = "+str(diff2)+","+str(np.sqrt(diff2))+"\n"
         print(string)
         write(_DIR, string)
     except:
