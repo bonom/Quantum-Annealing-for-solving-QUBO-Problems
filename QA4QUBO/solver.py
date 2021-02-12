@@ -6,8 +6,7 @@ import numpy as np
 from scipy import sparse
 from QA4QUBO.matrix import generate_chimera, generate_pegasus
 from QA4QUBO.script import annealer
-from dwave.system.samplers import DWaveSampler#, LeapHybridSampler
-from dwave.system.composites import EmbeddingComposite
+from dwave.system.samplers import DWaveSampler
 import datetime
 import neal
 
@@ -201,7 +200,7 @@ def get_active(sampler, n):
     return nodes
 
 
-def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, Q, DIR, sim):
+def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, Q, DIR, sim): 
     try:    
         if (not sim):
             string = "\n---------- Started Algorithm in Quantum Mode ----------\n"
@@ -241,7 +240,11 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
             
         print(f"--- Printing Q in file './{dir}' END ---  ")
         file.close()
-        
+        d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, Q, DIR, sim
+        string = "\n --- DATA --- \ndmin = "+str(d_min)+" - eta = "+str(eta)+" - imax = "+str(i_max)+" - k = "+str(k)+" - lambda 0 = "+str(lambda_zero)+" - n = "+str(n) +" - N = "+str(N) +" - Nmax = "+str(N_max)+" - pdelta = "+str(p_delta)+"\n"
+        print(string)
+        write(DIR,string)
+
         I = np.identity(n)
         p = 1
         Theta_one, m_one = g(Q, A, np.arange(n), p, sim)
@@ -297,6 +300,13 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
     while True:
         start_time = time.time()
         try:
+            string = str(round(((i/i_max)*100),2))+"% -- ETA: "+str(datetime.timedelta(seconds=((sum_time/(i-1)) * (i_max - i - 1))))+"\n"
+        except:
+            string = str(round(((i/i_max)*100),2))+"% -- ETA: not yet available\n"
+        print(string)
+        
+        
+        try:
             Q_prime = np.add(Q, (np.multiply(lam, S)))
             if (i % N == 0):
                 p = p - ((p - p_delta)*eta)
@@ -316,7 +326,6 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
             #z_prime = run_annealer(Theta_prime, sampler)
 
             if make_decision(q):
-                #print(f"Ho fatto la h con {z_prime}")
                 z_prime = h(z_prime, q)
 
             if (z_prime == z_star) == False:
@@ -352,21 +361,20 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
                 if(n > 16):
                     string = "-- -- Valori ciclo "+str(i)+"/"+str(i_max)+" -- --\np = "+str(p)+", f_prime = "+str(f_prime)+", f_star = "+str(f_star)+", e = "+str(e)+", d = "+str(d)+", Nmax = "+str(N_max)+", dmin = "+str(d_min)+" e lambda = "+str(lam)+"\nCi ho messo "+str(converted)+" in totale\n"
                 else:
-                    string = "-- -- Valori ciclo "+str(i)+"/"+str(i_max)+" -- --\np = "+str(p)+", f_prime = "+str(f_prime)+", f_star = "+str(f_star)+", e = "+str(e)+", d = "+str(d)+", Nmax = "+str(N_max)+", dmin = "+str(d_min)+" e lambda = "+str(lam)+"\nz* = "+str(np.atleast_2d(z_star).T)+"\nz' = "+str(np.atleast_2d(z_prime).T)+"\nCi ho messo "+str(converted)+" in totale\n"
+                    string = "-- -- Valori ciclo "+str(i)+"/"+str(i_max)+" -- --\np = "+str(p)+", f_prime = "+str(f_prime)+", f_star = "+str(f_star)+", e = "+str(e)+", d = "+str(d)+", Nmax = "+str(N_max)+", dmin = "+str(d_min)+" e lambda = "+str(lam)+"\nz* = "+str(z_star)+"\nz' = "+str(z_prime)+"\nCi ho messo "+str(converted)+" in totale\n"
                 print(string)
                 write(DIR, string)
-                #print(f"-- -- Valori ciclo {i}/{i_max} -- --\np = {p}, f_prime = {f_prime}, f_star = {f_star}, e = {e}, d = {d}, Nmax = {N_max}, dmin = {d_min} e lambda = {lam}\nz = {np.atleast_2d(z_star).T}\nCi ho messo {time.time()-start_time} secondi\n")
             except:
                 if(n > 16):
                     string = "-- -- Valori ciclo "+str(i)+"/"+str(i_max)+" -- --\nNon ci sono variazioni di f, z\ne = "+str(e)+", d = "+str(d)+", Nmax = "+str(N_max)+", dmin = "+str(d_min)+" e lambda = "+str(lam)+"\nCi ho messo "+str(converted)+" in totale\n"
                 else:
-                    string = "-- -- Valori ciclo "+str(i)+"/"+str(i_max)+" -- --\nNon ci sono variazioni di f, z\ne = "+str(e)+", d = "+str(d)+", Nmax = "+str(N_max)+", dmin = "+str(d_min)+" e lambda = "+str(lam)+"\nz* = "+str(np.atleast_2d(z_star).T)+"\nCi ho messo "+str(converted)+" in totale\n"
+                    string = "-- -- Valori ciclo "+str(i)+"/"+str(i_max)+" -- --\nNon ci sono variazioni di f, z\ne = "+str(e)+", d = "+str(d)+", Nmax = "+str(N_max)+", dmin = "+str(d_min)+" e lambda = "+str(lam)+"\nz* = "+str(z_star)+"\nCi ho messo "+str(converted)+" in totale\n"
                 print(string)
                 write(DIR, string)
-                #print(f"-- -- Ciclo {i}/{i_max} -- --\n\nNon ci sono variazioni di f, z\ne = {e}, d = {d}, Nmax = {N_max} e dmin = {d_min}\nCi ho messo {time.time()-start_time} secondi\n")
+            
             dir = DIR+"_vector.txt"
-            file = open(dir, 'w')
-            file.write(str(np.atleast_2d(z_star).T))
+            file = open(dir, 'a')
+            file.write("Ciclo "+str(i)+"-esimo - z* --> "+str(z_star)+"\n")
             file.close()
             sum_time = sum_time + (time.time() - start_time)
 
