@@ -37,37 +37,17 @@ def generate_QAP_problem(file):
     n = next(file_it)
     P = [[next(file_it) for j in range(n)] for i in range(n)]
     L = [[next(file_it) for j in range(n)] for i in range(n)]
-    
+
     Q = np.kron(P,L)
-    """
-    std_dev = 0
-    count = 0
-    mean = np.mean(Q)
-    for i in range(len(Q)):
-        for j in range(len(Q)):
-            if(Q[i][j] != 0):
-                std_dev += ((Q[i][j]- mean) ** 2)
-                count += 1
-   
-    std_dev /= count - 1
-    """
-    #pen = (Q.max() + np.sqrt(std_dev)*2.25)
-    pen = Q.max() * 2.25
-    matrix = generate_qubo_model(n, P, L, pen)
+    
+    #pen = (Q.max() * 2)
+    #pen += int(pen/n)
+    pen = (Q.max() * 2.25)
+    matrix = qubo_qap(P,L,pen)
+    #matrix = generate_qubo_model(n, P, L, pen)
     y = pen * (len(P) + len(L))
     return matrix, pen, len(matrix), y
-"""
-
-def generate_QAP_problem(file):
-    file_it = iter(read_integers(file))
-    n = next(file_it)
-    P = [[next(file_it) for j in range(n)] for i in range(n)]
-    L = [[next(file_it) for j in range(n)] for i in range(n)]
-
-   
     
-    return qubo_qap(P,L,pen)
-"""
 def qubo_qap(flow: np.ndarray, distance: np.ndarray, penalty):
     """Quadratic Assignment Problem (QAP)"""
     n = len(flow)
@@ -79,33 +59,6 @@ def qubo_qap(flow: np.ndarray, distance: np.ndarray, penalty):
     q[:, i, :, i] += penalty
     q[i, i, i, i] -= 4 * penalty
     return q.reshape(n ** 2, n ** 2)
-
-def generate_qubo_model(n, A, B, P=None):
-    
-    # The Q matrix is initialized
-    Q = np.zeros(shape=(n*n,n*n))
-    
-    if P is None:
-        P = max(map(max, A)) * max(map(max, B))/2
-    offset = 2*n*P
-    
-    # The Q matrix is filled
-    for i in range(n):
-        for j in range(n):
-            for k in range(n):
-                for l in range(n):
-                    # These correspond to the diagonal of the matrix
-                    if i==j and k==l:
-                        Q[i*n+k, j*n+l] = -2*P
-                    # These correspond to the decision variables that can't occur at the same time, which is
-                    # when a facility is in two locations or two facilities are in the same location
-                    elif i==j or k==l:
-                        Q[i*n+k, j*n+l] = P
-                    # Valid pairs of decision variables come directly from the original objective function
-                    else:
-                        Q[i*n+k, j*n+l] = (A[i][j] * B[k][l]) / 2
-
-    return Q
     
 def generate_chimera(n):
     G = dnx.chimera_graph(16)
@@ -137,6 +90,6 @@ def generate_pegasus(n):
             if(tmp.item(i,j)):
                 rows.append(i)
                 cols.append(j)
-
+      
     return list(zip(rows, cols))
     
