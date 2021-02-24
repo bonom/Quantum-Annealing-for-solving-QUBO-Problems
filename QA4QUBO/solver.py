@@ -272,6 +272,14 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
         #########################################################################
         """
 
+        string = "\n --- DATA --- \ndmin = "+str(d_min)+" - eta = "+str(eta)+" - imax = "+str(i_max)+" - k = "+str(k)+" - lambda 0 = "+str(
+            lambda_zero)+" - n = "+str(n) + " - N = "+str(N) + " - Nmax = "+str(N_max)+" - pdelta = "+str(p_delta)+" - q = "+str(q)+"\n"
+        print(string)
+        write(DIR, string)
+
+        if (input("Data correct?") not in ['1','Y','y']):
+            exit("Exit...")
+
         dir = DIR+"_matrix.txt"
         file = open(dir, 'a')
         i = 0
@@ -283,11 +291,6 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
 
         print(f"--- Printing Q in file './{dir}' END ---  ")
         file.close()
-
-        string = "\n --- DATA --- \ndmin = "+str(d_min)+" - eta = "+str(eta)+" - imax = "+str(i_max)+" - k = "+str(k)+" - lambda 0 = "+str(
-            lambda_zero)+" - n = "+str(n) + " - N = "+str(N) + " - Nmax = "+str(N_max)+" - pdelta = "+str(p_delta)+" - q = "+str(q)+"\n"
-        print(string)
-        write(DIR, string)
 
         I = np.identity(n)
         p = 1
