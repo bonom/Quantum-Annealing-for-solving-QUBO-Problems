@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import time
-import random
 import numpy as np
 from scipy import sparse
 from QA4QUBO.matrix import generate_chimera, generate_pegasus
@@ -10,7 +9,14 @@ from dwave.system.samplers import DWaveSampler
 from dwave.system import LeapHybridSampler
 import datetime
 import neal
-
+#from random import SystemRandom
+#random = SystemRandom()
+#################################################
+import sys                                      #
+import random                                   #
+random_seed = random.randrange(sys.maxsize)     #
+random.seed(random_seed)                        #
+#################################################
 import sys
 np.set_printoptions(threshold=sys.maxsize)
 
@@ -20,7 +26,8 @@ def function_f(Q, x):
 
 
 def make_decision(probability):
-    return random.random() < probability
+    tmp = random.random()
+    return tmp < probability
 
 
 def random_shuffle(a):
@@ -30,7 +37,6 @@ def random_shuffle(a):
     return dict(zip(keys, values))
 
 
-"""
 def shuffle_vector(v):
     n = len(v)
     
@@ -51,7 +57,7 @@ def shuffle_map(m):
         m[key] = m[it]
         m[it] = ts
         i += 1
-"""
+        
 
 
 def update(vector):
@@ -225,7 +231,9 @@ def get_active(sampler, n):
 
 def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, Q, DIR, sim):
     try:
-
+        string = "Random seed: "+ str(random_seed)+"\n"
+        print(string)
+        write(DIR,string)
         if (not sim):
             string = "\n---------- Started Algorithm in Quantum Mode ----------\n"
             print(string)
@@ -338,13 +346,8 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
         # input("Waiting...")
         start_time = time.time()
         try:
-            if i > 10:
-                string = str(round(((i/i_max)*100), 2))+"% -- ETA: "+str(
-                    datetime.timedelta(seconds=((sum_time/(i-1)) * (i_max - i - 1))))+"\n"
-            else:
-                string = str(round(((i/i_max)*100), 2))+"% -- ETA (approximated, wait cycle 10 for a better ETA): " + \
-                    str(datetime.timedelta(
-                        seconds=((sum_time/(i-1)) * (i_max - i - 1))))+"\n"
+            string = str(round(((i/i_max)*100), 2))+"% -- ETA: "+str(
+                    datetime.timedelta(seconds=((sum_time/i) * (i_max - i))))+"\n"
         except:
             string = str(round(((i/i_max)*100), 2)) + \
                 "% -- ETA: not yet available\n"
