@@ -37,7 +37,7 @@ def generate_QAP_problem(file):
     n = next(file_it)
     P = [[next(file_it) for j in range(n)] for i in range(n)]
     L = [[next(file_it) for j in range(n)] for i in range(n)]
-
+    
     Q = np.kron(P,L)
     
     #pen = (Q.max() * 2)

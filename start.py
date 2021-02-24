@@ -70,7 +70,8 @@ def file_qap(name):
 
 def main(_n):    
     
-    QAP = input("Do you want to use a QAP problem? (y/n) ")
+    #QAP = input("Do you want to use a QAP problem? (y/n) ")
+    QAP = True
     if(QAP in ['y', 'Y', 1, 's', 'S']):
         QAP = True
         _dir, name = getproblem()
