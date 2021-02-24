@@ -105,7 +105,7 @@ def E(matrix, vector):
 def fill(m, perm, _n):
     n = len(perm)
     if (n != _n):
-        exit(f"{n} != {_n} in fill function")
+        n = _n
     filled = [0 for i in range(n)]
     for i in range(n):
         if i in m.values():
@@ -122,7 +122,7 @@ def fill(m, perm, _n):
 def inverse(perm, _n):
     n = len(perm)
     if(n != _n):
-        input(f"{perm}\n{n} != {_n}")
+        n = _n
     inverted = [0 for i in range(n)]
     for i in range(n):
         inverted[perm[i]] = i
