@@ -14,7 +14,7 @@ import neal
 #################################################
 import sys                                      #
 import random                                   #
-random_seed = random.randrange(sys.maxsize)     #
+random_seed = 836492431233607954               #
 random.seed(random_seed)                        #
 #################################################
 import sys
@@ -148,32 +148,28 @@ def g(Q, A, oldperm, p, sim):
     for i in range(n):
         if make_decision(p):
             m[i] = i
-
+    
     m = random_shuffle(m)
     # random.shuffle(m)
-
+    
     perm = fill(m, oldperm, n)
     inversed = inverse(perm, n)
     #print(f"Perm --> {perm}\ninversed --> {inversed}")
     Theta = dict()
-
+    support = dict(zip(A.keys(), np.arange(n))) 
     if (sim):
         for row, col in A:
             k = inversed[row]
             l = inversed[col]
             Theta[row, col] = Q[k][l]
     else:
-        i = 0
         for key in list(A.keys()):
-            k = inversed[i]
+            k = inversed[support[key]]
             Theta[key, key] = Q[k][k]
-            j = 0
             for elem in A[key]:
-                l = inversed[j]
+                l = inversed[support[elem]]
                 Theta[key, elem] = Q[k][l]
-                j += 1
-            i += 1
-
+                
     return Theta, perm
 
 
@@ -271,7 +267,6 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
         A = generate_pegasus(n)                                                 #
         #########################################################################
         """
-
         string = "\n --- DATA --- \ndmin = "+str(d_min)+" - eta = "+str(eta)+" - imax = "+str(i_max)+" - k = "+str(k)+" - lambda 0 = "+str(
             lambda_zero)+" - n = "+str(n) + " - N = "+str(N) + " - Nmax = "+str(N_max)+" - pdelta = "+str(p_delta)+" - q = "+str(q)+"\n"
         print(string)

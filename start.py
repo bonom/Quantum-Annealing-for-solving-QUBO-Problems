@@ -6,7 +6,7 @@ from os.path import isfile, join
 import sys
 import numpy as np
 qap = [f for f in listdir("QA4QUBO/tests/") if isfile(join("QA4QUBO/tests/", f))]
-MAX = 1000
+MAX = 10
 
 np.set_printoptions(threshold=sys.maxsize)
 
@@ -70,8 +70,8 @@ def file_qap(name):
 
 def main(_n):    
     
-    #QAP = input("Do you want to use a QAP problem? (y/n) ")
-    QAP = True
+    QAP = input("Do you want to use a QAP problem? (y/n) ")
+    #QAP = True
     if(QAP in ['y', 'Y', 1, 's', 'S']):
         QAP = True
         _dir, name = getproblem()
@@ -106,7 +106,7 @@ def main(_n):
         print(string)
         write(_DIR, string)
     
-    z = solver.solve(d_min = 70, eta = 0.01, i_max = 1000, k = 10, lambda_zero = 1, n = _n, N = 10, N_max = 100, p_delta = 0.1, q = 0.2, topology = 'pegasus', Q = _Q, DIR = _DIR, sim = True)
+    z = solver.solve(d_min = 70, eta = 0.01, i_max = 2000, k = 45, lambda_zero = 1, n = _n, N = 10, N_max = 100, p_delta = 0.1, q = 0.2, topology = 'pegasus', Q = _Q, DIR = _DIR, sim = False)
     
     min_z = solver.function_f(_Q,np.atleast_2d(z).T).item()
     
