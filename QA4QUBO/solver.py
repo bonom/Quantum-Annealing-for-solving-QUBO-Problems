@@ -156,13 +156,13 @@ def g(Q, A, oldperm, p, sim):
     inversed = inverse(perm, n)
     #print(f"Perm --> {perm}\ninversed --> {inversed}")
     Theta = dict()
-    support = dict(zip(A.keys(), np.arange(n))) 
     if (sim):
         for row, col in A:
             k = inversed[row]
             l = inversed[col]
             Theta[row, col] = Q[k][l]
     else:
+        support = dict(zip(A.keys(), np.arange(n))) 
         for key in list(A.keys()):
             k = inversed[support[key]]
             Theta[key, key] = Q[k][k]
