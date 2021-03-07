@@ -2,21 +2,22 @@
 
 import time
 import numpy as np
-from scipy import sparse
 from QA4QUBO.matrix import generate_chimera, generate_pegasus
 from QA4QUBO.script import annealer
 from dwave.system.samplers import DWaveSampler
 from dwave.system import LeapHybridSampler
 import datetime
 import neal
-#from random import SystemRandom
-#random = SystemRandom()
+from random import SystemRandom
+random = SystemRandom()
+
+################################################# USE FOR TESTS MADE
+#import sys                                      #
+#import random                                   #
+#random_seed = 836492431233607954                #
+#random.seed(random_seed)                        #
 #################################################
-import sys                                      #
-import random                                   #
-random_seed = 836492431233607954               #
-random.seed(random_seed)                        #
-#################################################
+
 import sys
 np.set_printoptions(threshold=sys.maxsize)
 
@@ -57,50 +58,6 @@ def shuffle_map(m):
         m[key] = m[it]
         m[it] = ts
         i += 1
-        
-
-
-def update(vector):
-    dim = len(vector)
-    i = 0
-    while(i < dim and vector[i] == 1):
-        vector[i] = -1
-        i += 1
-    if(i < dim):
-        vector[i] = 1
-
-
-def minimization(matrix):
-    n = len(matrix)
-    matrix = sparse.csr_matrix(matrix)
-    rows, cols = matrix.nonzero()
-    values = matrix.data
-    N = 2**n
-    vector = [-1 for i in range(n)]
-
-    mat = list(zip(rows, cols, values))
-    minimum = E(mat, vector)
-    min_vector = vector.copy()
-
-    for i in range(N):
-        update(vector)
-        e = E(mat, vector)
-        if(e < minimum):
-            min_vector = vector.copy()
-            minimum = e
-
-    return np.atleast_2d(min_vector).T
-
-
-def E(matrix, vector):
-    e = 0
-    for row, col, val in matrix:
-        if row == col:
-            e += val * vector[row]
-        else:
-            e += val * vector[row] * vector[col]
-    return e
-
 
 def fill(m, perm, _n):
     n = len(perm)
@@ -112,9 +69,6 @@ def fill(m, perm, _n):
             filled[i] = perm[m[i]]
         else:
             filled[i] = perm[i]
-
-    # for i in range(n):
-    #    print(f"Row {i} has element 1 in position {filled[i]}")
 
     return filled
 
@@ -150,11 +104,10 @@ def g(Q, A, oldperm, p, sim):
             m[i] = i
     
     m = random_shuffle(m)
-    # random.shuffle(m)
     
     perm = fill(m, oldperm, n)
     inversed = inverse(perm, n)
-    #print(f"Perm --> {perm}\ninversed --> {inversed}")
+    
     Theta = dict()
     if (sim):
         for row, col in A:
@@ -188,14 +141,6 @@ def h(vect, pr):
 
     return vect
 
-
-def sim_ann(p, f_prime, f_star):
-    if np.log(p) != 0:
-        T = -(1/(np.log(p)))
-        return np.exp(-(f_prime - f_star)/T)
-    return 0
-
-
 def write(dir, string):
     file = open(dir, 'a')
     file.write(string+'\n')
@@ -227,9 +172,12 @@ def get_active(sampler, n):
 
 def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, Q, DIR, sim):
     try:
-        string = "Random seed: "+ str(random_seed)+"\n"
-        print(string)
-        write(DIR,string)
+        try:
+            string = "Random seed: "+ str(random_seed)+"\n"
+            print(string)
+            write(DIR,string)
+        except:
+            pass
         if (not sim):
             string = "\n---------- Started Algorithm in Quantum Mode ----------\n"
             print(string)
@@ -262,7 +210,7 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
         #########################################################################
         string = "\n---------- Started Algorithm in Hybrid Mode ----------\n"   #
         print(string)                                                           #
-        write(DIR, string)                                                      #TO REMOVE
+        write(DIR, string)                                                      #TO USE FOR HYBRID
         sampler = LeapHybridSampler()                                           #
         A = generate_pegasus(n)                                                 #
         #########################################################################
@@ -325,7 +273,8 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
         if (f_one == f_two) == False:
             S = (np.outer(z_prime, z_prime) - I) + np.diagflat(z_prime)
         else:
-            S = [[0 for col in range(n)] for row in range(n)]
+            S = np.zeros((n,n))
+            #S = [[0 for i in range(n)] for j in range(n)] #Old
 
     except KeyboardInterrupt:
         string = "KeyboardInterrupt occurred before cycle, closing program..."
@@ -341,7 +290,7 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
     sum_time = 0
 
     while True:
-        # input("Waiting...")
+        #input("Waiting...")
         start_time = time.time()
         try:
             string = str(round(((i/i_max)*100), 2))+"% -- ETA: "+str(
@@ -357,8 +306,7 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
                 p = p - ((p - p_delta)*eta)
 
             Theta_prime, m = g(Q_prime, A, m_star, p, sim)
-
-            # for kindex in range(1, k+1):
+            
             string = "Working on z'..."
             print(string, end=' ')
             write(DIR, string)
@@ -368,7 +316,6 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
             string = "Ended in "+str(convert_z)+" ."
             print(string)
             write(DIR, string)
-            #z_prime = run_annealer(Theta_prime, sampler)
 
             if make_decision(q):
                 z_prime = h(z_prime, q)
@@ -388,7 +335,6 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
 
                 else:
                     d = d + 1
-                    #if make_decision(sim_ann((p - p_delta), f_prime, f_star)): #
                     if make_decision((p-p_delta)**(f_prime-f_star)):
                         tmp = z_prime.copy()
                         z_prime = z_star.copy()
@@ -405,45 +351,44 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
 
             try:
                 if(n > 16):
-                    string = "-- -- Valori ciclo "+str(i)+"/"+str(i_max)+" -- --\np = "+str(p)+", f_prime = "+str(f_prime)+", f_star = "+str(f_star)+", e = "+str(
-                        e)+", d = "+str(d)+", Nmax = "+str(N_max)+", dmin = "+str(d_min)+" e lambda = "+str(lam)+"\nCi ho messo "+str(converted)+" in totale\n"
+                    string = "-- -- Values cycle "+str(i)+"/"+str(i_max)+" -- --\np = "+str(p)+", f_prime = "+str(f_prime)+", f_star = "+str(f_star)+", e = "+str(
+                        e)+", d = "+str(d)+", Nmax = "+str(N_max)+", dmin = "+str(d_min)+" and lambda = "+str(lam)+"\nTook "+str(converted)+" in total\n"
                 else:
-                    string = "-- -- Valori ciclo "+str(i)+"/"+str(i_max)+" -- --\np = "+str(p)+", f_prime = "+str(f_prime)+", f_star = "+str(f_star)+", e = "+str(e)+", d = "+str(
-                        d)+", Nmax = "+str(N_max)+", dmin = "+str(d_min)+" e lambda = "+str(lam)+"\nz* = "+str(z_star)+"\nz' = "+str(z_prime)+"\nCi ho messo "+str(converted)+" in totale\n"
+                    string = "-- -- Values cycle "+str(i)+"/"+str(i_max)+" -- --\np = "+str(p)+", f_prime = "+str(f_prime)+", f_star = "+str(f_star)+", e = "+str(e)+", d = "+str(
+                        d)+", Nmax = "+str(N_max)+", dmin = "+str(d_min)+" and lambda = "+str(lam)+"\nz* = "+str(z_star)+"\nz' = "+str(z_prime)+"\nTook "+str(converted)+" in total\n"
                 print(string)
                 write(DIR, string)
             except:
                 if(n > 16):
-                    string = "-- -- Valori ciclo "+str(i)+"/"+str(i_max)+" -- --\nNon ci sono variazioni di f, z\ne = "+str(e)+", d = "+str(
-                        d)+", Nmax = "+str(N_max)+", dmin = "+str(d_min)+" e lambda = "+str(lam)+"\nCi ho messo "+str(converted)+" in totale\n"
+                    string = "-- -- Values cycle "+str(i)+"/"+str(i_max)+" -- --\nNo variations on f, z\ne = "+str(e)+", d = "+str(
+                        d)+", Nmax = "+str(N_max)+", dmin = "+str(d_min)+" and lambda = "+str(lam)+"\nTook "+str(converted)+" in total\n"
                 else:
-                    string = "-- -- Valori ciclo "+str(i)+"/"+str(i_max)+" -- --\nNon ci sono variazioni di f, z\ne = "+str(e)+", d = "+str(d)+", Nmax = "+str(
-                        N_max)+", dmin = "+str(d_min)+" e lambda = "+str(lam)+"\nz* = "+str(z_star)+"\nCi ho messo "+str(converted)+" in totale\n"
+                    string = "-- -- Values cycle "+str(i)+"/"+str(i_max)+" -- --\nNo variations on f, z\ne = "+str(e)+", d = "+str(d)+", Nmax = "+str(
+                        N_max)+", dmin = "+str(d_min)+" and lambda = "+str(lam)+"\nz* = "+str(z_star)+"\nTook "+str(converted)+" in total\n"
                 print(string)
                 write(DIR, string)
 
             dir = DIR+"_vector.txt"
             file = open(dir, 'a')
-            file.write("Ciclo "+str(i)+"-esimo - z* --> "+str(z_star)+"\n")
+            file.write("Cycle "+str(i)+"-th - z* --> "+str(z_star)+"\n")
             file.close()
             sum_time = sum_time + (time.time() - start_time)
 
             if ((i == i_max) or ((e + d >= N_max) and (d < d_min))):
                 if(i != i_max):
-                    string = "Uscito al ciclo " + \
+                    string = "Exited at cycle " + \
                         str(i)+"/"+str(i_max) + \
-                        " ed è stata raggiunta la convergenza."
+                        " thanks to convergence."
                     print(string)
                     write(DIR, string)
                 else:
-                    string = "Uscito al ciclo "+str(i)+"/"+str(i_max)+"\n"
+                    string = "Exited at cycle "+str(i)+"/"+str(i_max)+"\n"
                     print(string)
                     write(DIR, string)
                 break
 
             i = i + 1
         except KeyboardInterrupt:
-            #sum_time = sum_time + (time.time() - start_time)
             break
 
     converted = datetime.timedelta(seconds=sum_time)
@@ -451,9 +396,63 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
         conv = datetime.timedelta(seconds=(sum_time/(i-1)))
     else:
         conv = datetime.timedelta(seconds=(sum_time))
-    string = "Tempo medio per iterazione: " + \
-        str(conv)+"\nTempo totale: "+str(converted)+"\n"
+    string = "Average time for iteration: " + \
+        str(conv)+"\nTotal time: "+str(converted)+"\n"
     print(string)
     write(DIR, string)
 
     return np.atleast_2d(z_star).T
+
+
+
+""" #Old functions
+
+def update(vector):
+    dim = len(vector)
+    i = 0
+    while(i < dim and vector[i] == 1):
+        vector[i] = -1
+        i += 1
+    if(i < dim):
+        vector[i] = 1
+
+
+def minimization(matrix):
+    n = len(matrix)
+    matrix = sparse.csr_matrix(matrix)
+    rows, cols = matrix.nonzero()
+    values = matrix.data
+    N = 2**n
+    vector = [-1 for i in range(n)]
+
+    mat = list(zip(rows, cols, values))
+    minimum = E(mat, vector)
+    min_vector = vector.copy()
+
+    for i in range(N):
+        update(vector)
+        e = E(mat, vector)
+        if(e < minimum):
+            min_vector = vector.copy()
+            minimum = e
+
+    return np.atleast_2d(min_vector).T
+
+
+def E(matrix, vector):
+    e = 0
+    for row, col, val in matrix:
+        if row == col:
+            e += val * vector[row]
+        else:
+            e += val * vector[row] * vector[col]
+    return e
+
+#there is new p swap
+def sim_ann(p, f_prime, f_star):
+    if np.log(p) != 0:
+        T = -(1/(np.log(p)))
+        return np.exp(-(f_prime - f_star)/T)
+    return 0
+
+"""

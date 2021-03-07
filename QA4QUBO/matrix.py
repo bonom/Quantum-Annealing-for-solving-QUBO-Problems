@@ -15,7 +15,8 @@ def generate_QUBO_problem(S):
         c += S[i]
     col_max = 0
     col = 0
-    QUBO = [[0 for col in range(n)] for row in range(n)]
+    QUBO = np.zeros((n,n))
+    #QUBO = [[0 for i in range(n)] for j in range(n)] #Old
     for row in range(n):
         col_max += 1
         while col < col_max:
@@ -40,11 +41,8 @@ def generate_QAP_problem(file):
     
     Q = np.kron(P,L)
     
-    #pen = (Q.max() * 2)
-    #pen += int(pen/n)
     pen = (Q.max() * 2.25)
     matrix = qubo_qap(P,L,pen)
-    #matrix = generate_qubo_model(n, P, L, pen)
     y = pen * (len(P) + len(L))
     return matrix, pen, len(matrix), y
     

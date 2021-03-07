@@ -1,7 +1,6 @@
-#!/usr/bin/env python3
-
 from random import SystemRandom
 random = SystemRandom()
+
 import numpy as np
 
 def generate_S(n, max):
