@@ -6,11 +6,11 @@ from os.path import isfile, join
 import sys
 import numpy as np
 qap = [f for f in listdir("QA4QUBO/qap/") if isfile(join("QA4QUBO/qap/", f))]
-MAX = 1000000000 #1 miliardo
+#MAX = 1000000000 #1 miliardo
 #MAX = 1000000 #1milione
 #MAX = 100000 #100k
 #MAX = 10000 #10k
-#MAX = 1000 #mille
+MAX = 1000 #mille
 
 np.set_printoptions(threshold=sys.maxsize)
 
@@ -41,8 +41,8 @@ def generate_file_npp(_n:int):
         try:
             with open("output/"+dir+".txt", "r") as file:
                 pass
-            #max_range = int(max_range/2)
-            #if(not max_range):
+            max_range = int(max_range/2)
+            if(not max_range):
                 exit("File output terminati")
             dir = "output_"+str(_n)+"_"+ str(max_range)
             i += 1
@@ -74,8 +74,8 @@ def file_qap(name):
 
 def main(_n):    
     
-    QAP = input("Do you want to use a QAP problem? (y/n) ")
-    
+    #QAP = input("Do you want to use a QAP problem? (y/n) ")
+    QAP = False
     if(QAP in ['y', 'Y', 1, 's', 'S']):
         QAP = True
         _dir, name = getproblem()
@@ -99,8 +99,11 @@ def main(_n):
         string = "\n S = "+str(S)+"\n"
         print(string)
         write(_DIR, string)
+
+    #from test import main
+    #_Q = main()
     
-    z = solver.solve(d_min = 70, eta = 0.01, i_max = 2000, k = 10, lambda_zero = 1, n = _n, N = 10, N_max = 100, p_delta = 0.1, q = 0.2, topology = 'pegasus', Q = _Q, DIR = _DIR, sim = False)
+    z = solver.solve(d_min = 70, eta = 0.01, i_max = 2000, k = 5, lambda_zero = 1, n = _n, N = 10, N_max = 100, p_delta = 0.1, q = 0.2, topology = 'pegasus', Q = _Q, DIR = _DIR, sim = False)
     
     min_z = solver.function_f(_Q,np.atleast_2d(z).T).item()
     

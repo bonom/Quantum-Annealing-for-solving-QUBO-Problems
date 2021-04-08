@@ -10,11 +10,13 @@ import datetime
 import neal
 from random import SystemRandom
 random = SystemRandom()
+#np.set_printoptions(linewidth=np.inf)
+#a = list()
 
 ################################################# USE FOR TESTS MADE
 #import sys                                      #
 #import random                                   #
-#random_seed = 836492431233607954                #
+#random_seed = random.randint(2**60,2**64)                #
 #random.seed(random_seed)                        #
 #################################################
 
@@ -95,7 +97,14 @@ def map_back(z, perm):
 
     return z_ret
 
-
+def printTheta(dictionary):
+    tmp = 1
+    for i,j in dictionary:
+        if i == tmp:
+            print("\n")
+            tmp+=1
+        print(f"({i},{j}) -> {dictionary[i,j]}",end="\t")
+        
 def g(Q, A, oldperm, p, sim):
     n = len(Q)
     m = dict()
@@ -103,7 +112,13 @@ def g(Q, A, oldperm, p, sim):
         if make_decision(p):
             m[i] = i
     
+
     m = random_shuffle(m)
+
+    #if m in a:
+    #    print("Errore permutazione già fatta")
+    #else:
+    #    a.append(m)
     
     perm = fill(m, oldperm, n)
     inversed = inverse(perm, n)
@@ -124,7 +139,6 @@ def g(Q, A, oldperm, p, sim):
                 Theta[key, elem] = Q[k][l]
                 
     return Theta, perm
-
 
 def h(vect, pr):
 
@@ -170,7 +184,16 @@ def get_active(sampler, n):
     return nodes
 
 
+def counter(vector):
+    count = 0
+    for i in range(len(vector)):
+        if vector[i]:
+            count += 1
+    
+    return count
+
 def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, Q, DIR, sim):
+    print(DIR)
     try:
         try:
             string = "Random seed: "+ str(random_seed)+"\n"
@@ -220,8 +243,8 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
         print(string)
         write(DIR, string)
 
-        if (input("Data correct?") not in ['1','Y','y']):
-            exit("Exit...")
+        #if (input("Data correct?") not in ['1','Y','y']):
+        #    exit("Exit...")
 
         dir = DIR+"_matrix.txt"
         file = open(dir, 'a')
@@ -234,7 +257,7 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
 
         print(f"--- Printing Q in file './{dir}' END ---  ")
         file.close()
-
+#
         I = np.identity(n)
         p = 1
         Theta_one, m_one = g(Q, A, np.arange(n), p, sim)
@@ -286,6 +309,7 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
     d = 0
     i = 1
     lam = lambda_zero
+    min_so_far = 0
 
     sum_time = 0
 
@@ -293,15 +317,24 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
         #input("Waiting...")
         start_time = time.time()
         try:
-            string = str(round(((i/i_max)*100), 2))+"% -- ETA: "+str(
-                    datetime.timedelta(seconds=((sum_time/i) * (i_max - i))))+"\n"
+            string = str(round(((i/i_max)*100), 2))+"% -- ETA: "+str(datetime.timedelta(seconds=((sum_time/i) * (i_max - i))))+"\n"
         except:
-            string = str(round(((i/i_max)*100), 2)) + \
-                "% -- ETA: not yet available\n"
+            string = str(round(((i/i_max)*100), 2)) + "% -- ETA: not yet available\n"
         print(string)
 
         try:
             Q_prime = np.add(Q, (np.multiply(lam, S)))
+            #dir = DIR+"_"+str(i)+"_matrix.txt"
+            #file = open(dir, 'a')
+            #j = 0
+            #for row in Q:
+            #    j += 1
+            #    print(
+            #        f"--- Printing Q in file './{dir}' ... {int((j/n)*100)} %", end='\r')
+            #    file.write(str(row)+'\n')
+            #
+            #print(f"--- Printing Q in file './{dir}' END ---  ")
+            #file.close()
             if (i % N == 0):
                 p = p - ((p - p_delta)*eta)
 
@@ -320,25 +353,34 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
             if make_decision(q):
                 z_prime = h(z_prime, q)
 
+            mat = np.zeros((n,n))
+            #print(Theta_prime)
+            for key, value in Theta_prime.items():
+                a,b = key
+                mat[a][b] = value
+            with open('errors.txt', 'a') as f:
+                f.write("\n"+str(i)+". Vettore:"+str(counter(z_prime))+"\n"+str(z_prime)+"\nMatrice:\n")
+                f.write(str(mat)+"\n")
+            #input("...")
+
             if (z_prime == z_star) == False:
                 f_prime = function_f(Q, z_prime).item()
                 if (f_prime < f_star):
-                    tmp = z_prime.copy()
-                    z_prime = z_star.copy()
-                    z_star = tmp.copy()
+                    z_prime, z_star = z_star, z_prime
                     f_star = f_prime
                     m_star = m
                     e = 0
                     d = 0
                     S = S + ((np.outer(z_prime, z_prime) - I) +
                              np.diagflat(z_prime))
-
                 else:
                     d = d + 1
                     if make_decision((p-p_delta)**(f_prime-f_star)):
-                        tmp = z_prime.copy()
-                        z_prime = z_star.copy()
-                        z_star = tmp.copy()
+                        #string = "make_decision with "+str((p-p_delta)**(f_prime-f_star))+" p - p_delta = "+str((p-p_delta))+" e f' - f* = "+str((f_prime-f_star))+" e sono uguali? "+str((f_prime==f_star))
+                        #if f_prime != f_star:
+                        #    input(f"{string}")
+                        write(DIR, string)
+                        z_prime, z_star = z_star, z_prime
                         f_star = f_prime
                         m_star = m
                         e = 0
@@ -349,6 +391,9 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
             # debug print
             converted = datetime.timedelta(seconds=(time.time()-start_time))
 
+            string = "Esco al ciclo "+str(i)+" con questi valori:\n"
+            print(string)
+            write(DIR,string)
             try:
                 if(n > 16):
                     string = "-- -- Values cycle "+str(i)+"/"+str(i_max)+" -- --\np = "+str(p)+", f_prime = "+str(f_prime)+", f_star = "+str(f_star)+", e = "+str(
@@ -386,6 +431,9 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
                     print(string)
                     write(DIR, string)
                 break
+            
+            if f_star < min_so_far:
+                min_so_far = f_star
 
             i = i + 1
         except KeyboardInterrupt:
@@ -398,6 +446,11 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
         conv = datetime.timedelta(seconds=(sum_time))
     string = "Average time for iteration: " + \
         str(conv)+"\nTotal time: "+str(converted)+"\n"
+    print(string)
+    write(DIR, string)
+
+
+    string = str(min_so_far)
     print(string)
     write(DIR, string)
 
