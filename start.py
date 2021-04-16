@@ -1,8 +1,8 @@
-#!/usr/bin/env python3
-
+#!/usr/local/bin/python3
 from QA4QUBO import matrix, vector, solver
-from os import listdir
-from os.path import isfile, join
+from QA4QUBO.colors import colors
+from os import listdir, mkdir, system, name
+from os.path import isfile, join, exists
 import sys
 import numpy as np
 import csv
@@ -11,7 +11,9 @@ qap = [f for f in listdir("QA4QUBO/qap/") if isfile(join("QA4QUBO/qap/", f))]
 #MAX = 1000000 #1milione
 #MAX = 100000 #100k
 #MAX = 10000 #10k
-MAX = 1000 #mille
+#MAX = 1000 #mille
+QAP = False
+NPP = False
 
 np.set_printoptions(threshold=sys.maxsize)
 
@@ -33,94 +35,143 @@ def write(dir, string):
     file.write(string+'\n')
     file.close()
 
+def csv_write(DIR, l):
+    with open(DIR, 'a') as file:
+        writer = csv.writer(file)
+        writer.writerow(l)
+
 def generate_file_npp(_n:int):
     nok = True
     i = 0
-    max_range = MAX
-    dir = "output_"+str(_n)+"_"+ str(max_range)
+    max_range = 1000000
+    dir = "NPP_output_"+str(_n)+"_"+ str(max_range)
     while(nok):
         try:
-            with open("output/"+dir+".csv", "r") as file:
+            with open("outputs/"+dir+".csv", "r") as file:
                 pass
-            max_range = int(max_range/2)
-            if(not max_range):
+            max_range = int(max_range/10)
+            if(max_range < 10):
                 exit("File output terminati")
-            dir = "output_"+str(_n)+"_"+ str(max_range)
+            dir = "NPP_output_"+str(_n)+"_"+ str(max_range)
             i += 1
         except IOError:
             nok = False
         
-    DIR = "output/"+dir
+    DIR = "outputs/"+dir
 
     return DIR, max_range
 
-def file_qap(name):
+def generate_file_tsp(n:int,edges:int):
     nok = True
     i = 0
-    dir = "output_"+str(name)+"_"+ str(i)
+    dir = "TSP_output_"+str(n)+"_"+ str(edges)
     while(nok):
         try:
-            with open("output/"+dir+".csv", "r") as file:
+            with open("outputs/"+dir+".csv", "r") as file:
                 pass
             i += 1
-            dir = "output_"+str(name)+"_"+ str(i)
+            dir = "TSP_output_"+str(n)+"_"+ str(edges)+"_"+str(i)
         except IOError:
             nok = False
         
-    DIR = "output/"+dir
+    DIR = "outputs/"+dir
+
+    return DIR
+
+def generate_file_qap(name):
+    nok = True
+    i = 0
+    dir = "QAP_output_"+str(name)+"_"+ str(i)
+    while(nok):
+        try:
+            with open("outputs/"+dir+".csv", "r") as file:
+                pass
+            i += 1
+            dir = "QAP_output_"+str(name)+"_"+ str(i)
+        except IOError:
+            nok = False
+        
+    DIR = "outputs/"+dir
 
     return DIR
 
 def main(_n):    
     print(" --------- Creating Problem ---------\n")
-    #QAP = input("Do you want to use a QAP problem? (y/n) ")
-    QAP = False
-    if(QAP in ['y', 'Y', 1, 's', 'S']):
-        QAP = True
+    
+    if QAP:
         _dir, name = getproblem()
         _Q, penalty, _n, y = matrix.generate_QAP_problem(_dir)
         name = name.replace(".txt","")
-        _DIR = file_qap(name)
+        _DIR = generate_file_qap(name)
+        csv_DIR = _DIR.replace("QAP","QAP_LOG") + ".csv"
 
-    else:
-        QAP = False
-        if _n == 0:
-            _n = int(input("Insert n: "))
+    elif NPP:
+        while _n <= 0:
+            _n = int(input("["+colors.FAIL+colors.BOLD+"Invalid n"+colors.ENDC+"] Insert n: "))
         _DIR, max_range = generate_file_npp(_n)
         S = vector.generate_S(_n, max_range)
-        #S = [93709, 474199, 837197, 132188, 519794, 235351, 826543, 570259, 880743, 194779, 523503, 577587, 682233, 966549, 237831, 941173, 129600, 321494, 700917, 333532, 346872, 732859, 574485, 946880, 887340, 757500, 715290, 178225, 575726, 885418, 355701, 507343, 319205, 182622, 754527, 744076, 862329, 508897, 245228, 685303, 356395, 690099, 518299, 735011, 597787, 981075, 462294, 69015, 464379, 427350, 828544, 411718, 580917, 147519, 602999, 947152, 316024, 316598, 24963, 843375, 4102, 548241, 679682, 10024, 60155, 837841, 937544, 95412, 943271, 966737, 133984, 572770, 975309, 410373, 449374, 207545, 236705, 343062, 792270, 8448, 728176, 199721, 368474, 845074, 469288, 645400, 683950, 36785, 200, 869857, 605286, 481531, 879637, 151095, 469950, 831276, 765472, 653652, 960096, 470909, 847938, 861368, 365345, 376705, 136953, 48863, 166111, 855408, 516493, 172486, 319825, 679240, 191097, 835152, 278441, 2986, 571309, 175471, 911505, 233386, 440570, 766420, 885223, 201298, 751547, 500795, 821560, 719853, 850981, 34770, 98090, 158450, 238724, 14089, 306025, 984712, 531010, 718626, 270451, 213934, 35941, 865310, 206378, 710462, 125626, 829475, 36251, 194560, 863736, 794204, 746529, 154272, 422032, 567732, 291479, 772118, 918350, 301617, 134772, 913851, 561256, 739822, 882056, 594167, 663692, 248379, 71554, 181188, 643058, 423558, 176825, 557142, 84465, 539039, 234933, 924206, 578853, 817226, 28250, 771403, 806812, 904263, 267290, 538881, 138719, 464111, 181494, 854367, 47253, 114679, 134164, 603626, 145514, 975818, 294951, 245409, 602474, 200181, 48719, 330199, 606510, 484495, 171475, 282991, 962190, 850531, 310929, 181638, 593056, 186866, 390198, 274233, 824471, 481418, 627855, 31543, 18109, 865533, 548872, 820403, 592695, 971302, 356512, 743562, 17319, 493143, 960360, 933207, 579529, 215331, 23670, 643637, 241765, 440259, 566346, 777988, 929373, 515484, 167740, 353800, 207453, 254276, 947981, 240350, 616647, 889171, 149976, 263477, 577985, 723541, 795530, 273204, 937305, 713503, 129059, 62998, 371903, 122266, 272353, 74634, 634025, 973621, 532157, 33590, 679187, 597440, 403035, 238474, 166706, 767918, 168076, 734489, 148791, 778122, 706453, 57790, 114031, 431243, 676288, 642641, 377533, 534223, 897637, 393143, 383400, 645976, 547926, 716000, 334762, 488828, 215787, 43385, 208274, 960390, 768311, 173002, 140363, 85384, 475681, 58734, 443981, 126257, 912490, 184095, 829849, 800105, 160282, 732392, 656597, 600451, 433840, 732761, 642097, 829895, 332928, 454261, 635997, 305302, 556804, 725402, 555123, 519316, 912601, 717404, 512834, 890314, 715823, 282306, 355101, 264934, 133341, 548142, 451685, 951608, 377653, 175183, 236680, 445387, 978655, 472024, 502177, 905293, 717429, 695378, 949149, 693601, 998936, 164892, 649429, 193040, 765767, 652965, 148230, 365647, 132548, 701956, 684308, 81782, 899098, 675950, 934410, 498471, 72720, 267312, 690326, 854193, 398912, 955248, 650085, 963820, 263230, 465838, 654028, 843012, 535552, 961600, 885269, 24329, 646748, 620962, 619032, 880254, 775669, 552631, 687753, 291232, 560451, 15015, 761539, 977211, 465405, 213253, 836355, 259797, 100541, 484008, 682215, 828333, 675245, 407304, 370464, 568652, 683773, 530165, 852702, 956958, 954186, 758414, 215522, 870541, 661502, 560439, 829320, 449145, 209754, 628070, 777997, 815409, 534401, 374324, 809714, 371344, 137566, 302638, 927591, 816636, 345211, 660427, 509398, 498576, 709630, 253796, 225206, 589883, 683948, 939612, 44262, 835541, 632634, 872348, 209377, 881332, 675746, 549605, 184027, 101596, 107636, 809198, 486740, 192875, 656670, 219562, 198155, 493394, 626787, 242077, 516366, 499931, 195649, 296004, 646027, 496211, 206044, 372608, 743601, 839258, 752644, 423050, 340346, 913880, 669819, 667584, 144465, 364758, 380260, 108198, 537759, 212103, 80382, 35001, 572872, 2786, 611583, 282765, 225410, 634932, 700868, 823394, 997369, 806636, 274729, 240992, 512043, 868470, 405208, 66477, 275356, 748823, 391620, 376339]
         _Q, c = matrix.generate_QUBO_problem(S)
+        csv_DIR = _DIR.replace("NPP","NPP_LOG") + ".csv"
     
-    #txt_DIR = _DIR + ".txt"
-    csv_DIR = _DIR + ".csv"
+    else:
+        while _n <= 0 or _n > 9:
+            _n = int(input("["+colors.FAIL+colors.BOLD+"Invalid n"+colors.ENDC+"] Insert n: "))
+        G, _Q = matrix.tsp(_n)
+        len_edges = len(G.edges())
+        _DIR = generate_file_tsp(_n,len_edges)
+        csv_DIR = _DIR.replace("TSP","TSP_LOG") + ".csv"
+
     print(" ---------- Problem start ----------\n")
     
-    if not QAP:
+    if NPP:
         print("\n S = "+str(S)+"\n")
-    #from test import main
-    #_Q = main()
-    z = solver.solve(d_min = 70, eta = 0.01, i_max = 2000, k = 5, lambda_zero = 3/2, n = _n, N = 10, N_max = 100, p_delta = 0.1, q = 0.2, topology = 'pegasus', Q = _Q, csv_DIR = csv_DIR, sim = True)
+
+    z = np.atleast_2d(solver.solve(d_min = 70, eta = 0.01, i_max = 3, k = 1000, lambda_zero = 3/2, n = _n if QAP or NPP else _n**2, N = 10, N_max = 100, p_delta = 0.1, q = 0.2, topology = 'pegasus', Q = _Q, csv_DIR = csv_DIR, sim = False)).T[0]
     
-    min_z = solver.function_f(_Q,np.atleast_2d(z).T).item()
+    min_z = solver.function_f(_Q,z).item()
     
-    string = "So far we found:\n- z - \n"+str(np.atleast_2d(z).T)+"\nand has minimum = "+str(min_z)+"\n"
-    if not QAP:
+    string = "So far we found:\n- z - \n"+str(z)+"\nand has minimum = "+str(min_z)+"\n"
+    if NPP:
         diff2 = (c**2 + 4*min_z)
         string += "c = "+str(c)+", c^2 = "+str(c**2)+", diff^2 = "+str(diff2)+", diff = "+str(np.sqrt(diff2))+"\n"
         print(string)
-        with open(_DIR+"_solution.csv", 'a') as file:
-            writer = csv.writer(file)
-            writer.writerow(["c","c**2","diff**2","diff","S", "z", "Q"])
-            writer.writerow([c,c**2,diff2,np.sqrt(diff2),S,np.atleast_2d(z).T, _Q])
+        csv_write(DIR=_DIR+"_solution.csv", l=["c","c**2","diff**2","diff","S", "z", "Q"])
+        csv_write(DIR=_DIR+"_solution.csv", l=[c,c**2,diff2,np.sqrt(diff2),S,z, _Q  if _n < 5 else "too big"])
         
-    else:
+    elif QAP:
+        csv_write(DIR=_DIR+"_solution.csv", l=["problem","y","penalty","difference (y+minimum)", "z", "Q" ])
+        csv_write(DIR=_DIR+"_solution.csv", l=[name,y,penalty,y+min_z,np.atleast_2d(z).T,_Q])
         string += "y = "+str(y)+", penalty = "+str(penalty)+", difference (y+minimum) = "+str(y+min_z)+"\n"
+        print(string)
+
+    else:
+        res = np.split(z,_n)
+        valid = True
+        route = list()
+        for split in res:
+            if np.count_nonzero(split == 1) != 1:
+                valid = False
+            route.append(str(np.where(split == 1)))
+        if not valid:
+            string += "\nIl risultato non è divisibile"
+        
+        csv_write(DIR=_DIR+"_solution.csv", l=["Result","Route", "z", "res"])
+        csv_write(DIR=_DIR+"_solution.csv", l=["Valid" if valid else "Not valid",route, z, res])
+        csv_write(DIR=_DIR+"_solution.csv", l=[])
+        csv_write(DIR=_DIR+"_solution.csv", l=[])
+        csv_write(DIR=_DIR+"_solution.csv", l=["G.Nodes", "G.edges"])
+        csv_write(DIR=_DIR+"_solution.csv", l=[G.nodes(), G.edges()])
         print(string)
 
 
 if __name__ == '__main__':
+    system('cls' if name == 'nt' else 'clear')
+
+    if not exists('outputs'):
+        mkdir('outputs')
+
     try:
         n = int(sys.argv[1])
-    except:
+    except IndexError:
         n = 0
     main(n)

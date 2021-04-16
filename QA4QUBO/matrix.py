@@ -1,9 +1,34 @@
-#!/usr/bin/env python3
-
+from dwave_networkx.algorithms.tsp import traveling_salesperson_qubo
 import dwave_networkx as dnx
 import networkx as nx
 import numpy as np
 import dimod
+from random import SystemRandom
+random = SystemRandom()
+
+def tsp(n):
+    G = nx.Graph()
+    G = nx.complete_graph(n)
+    for (u, v) in G.edges():
+        G.edges[u,v]['weight'] = round(random.random()*100,2)
+    
+    #G.add_edge(node1,node2,weight=round(random.random()*100, 2))
+    
+    d = traveling_salesperson_qubo(G) 
+    
+    indexes = dict()
+    it = 0
+    for i in range(n):
+        for j in range(n):
+            indexes[(i,j)] = it
+            it += 1
+
+    matrix = np.zeros((n**2,n**2), dtype=np.float_)
+
+    for key_1, key_2 in d:
+        matrix[indexes[key_1],indexes[key_2]] = d[key_1,key_2]
+
+    return G, matrix
 
 def generate_QUBO_problem(S):
     """
