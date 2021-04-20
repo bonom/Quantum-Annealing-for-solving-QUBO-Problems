@@ -127,7 +127,7 @@ def decode_solution(response, validate):
                 random.shuffle(indexes)
                 index = indexes[0]
                 for it in indexes:
-                    if it == index: #Ho interpretato correttamente?
+                    if it == index: 
                         solution[it] = i 
                     else:
                         solution[it] = -1
