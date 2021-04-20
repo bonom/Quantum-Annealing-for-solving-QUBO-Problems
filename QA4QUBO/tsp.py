@@ -147,47 +147,7 @@ def decode_solution(response, validate):
                 diff.remove(it)
 
     return solution
-"""
-def decode_solution(tsp_matrix, response, validate=True):
-    n = len(tsp_matrix)
-    solution = []
-    sw = []
-    x = []
-    last_j = -1
-    all = set()
-    ins = set()
-    for j in response:
-        x.append(j)
-    for i in range(n):
-        solution.append(-1)
-        sw.append(0)
-    for i in range(n):
-        for j in range(n):
-            if x[n * i + j] == 1:
-                solution[i] = j
-                last_j = j
-                pass
-            pass
-        all.add(i)
-        if last_j != -1:
-            ins.add(last_j)
-        last_j = -1
-    if validate:
-        res = all - ins
-        for i in range(n):
-            if solution[i] == -1:
-                solution[i] = res.pop()
-                ins.add(solution[i])
-        if len(ins) != len(all):
-            for i in range(n):
-                if sw[solution[i]] == 0:
-                    sw[solution[i]] += 1
-                else:
-                    solution[i] = res.pop()
-                    sw[solution[i]] += 1
-        pass
-    return np.array(solution)
-"""
+
 def calculate_cost(cost_matrix, solution):
     cost = 0
     for i in range(len(solution)):
