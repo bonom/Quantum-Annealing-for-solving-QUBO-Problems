@@ -208,7 +208,6 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
         if (not sim):
             print(now()+" ["+colors.BOLD+colors.OKGREEN+"LOG"+colors.ENDC+"] "+colors.HEADER+"Started Algorithm in Quantum Mode"+colors.ENDC)
             sampler = DWaveSampler({'topology__type':topology})
-            print(now()+" ["+colors.BOLD+colors.OKGREEN+"LOG"+colors.ENDC+"] "+colors.HEADER+"Using Pegasus Topology \n"+colors.ENDC)
             A = get_active(sampler, n)
             sampler = EmbeddingComposite(sampler)
         else:
@@ -259,11 +258,6 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
             m_star = m_two
             z_prime = z_one
         
-        if (f_one != f_two):
-            S = (np.outer(z_prime, z_prime) - I) + np.diagflat(z_prime)
-        else:
-            S = np.zeros((n,n))
-            #S = [[0 for i in range(n)] for j in range(n)] #Old
 
     except KeyboardInterrupt:
         exit("\n\n["+colors.BOLD+colors.OKGREEN+"KeyboardInterrupt"+colors.ENDC+"] Closing program...")
@@ -284,12 +278,7 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
         print(now()+" ["+colors.BOLD+colors.OKGREEN+"PRG"+colors.ENDC+f"] Cycle {i}/{i_max} -- {round((((i-1)/i_max)*100), 2)}% -- ETA {string}")
 
         try:
-            Q_prime = np.add(Q, (np.multiply(lam, S)))
-            
-            if (i % N == 0):
-                p = p - ((p - p_delta)*eta)
-
-            Theta_prime, m = g(Q_prime, A, m_star, p, sim)
+            Theta_prime, m = g(Q, A, m_star, p, sim)
             
             print(now()+" ["+colors.BOLD+colors.OKGREEN+"ANN"+colors.ENDC+"] Working on z'...", end=' ')
             start = time.time()
@@ -308,8 +297,6 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
                     m_star = m
                     e = 0
                     d = 0
-                    S = S + ((np.outer(z_prime, z_prime) - I) +
-                             np.diagflat(z_prime))
                 else:
                     d = d + 1
                     if make_decision((p-p_delta)**(f_prime-f_star)):
