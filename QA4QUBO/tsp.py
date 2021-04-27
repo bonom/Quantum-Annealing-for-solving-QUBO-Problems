@@ -244,11 +244,18 @@ def tsp(n, DIR):
     print(now()+" ["+colors.BOLD+colors.OKBLUE+"LOG"+colors.ENDC+"] Solving bruteforce ... ")
 
     csv_write(DIR, l=[nodes_array, tsp_matrix, qubo])
+    csv_write(DIR, l=[])
 
     start = time.time()
     bf_solution, bf_cost = solve_tsp_brute_force(nodes_array)
     bf_time = time.time() - start
     print(now()+" ["+colors.BOLD+colors.OKGREEN+"END"+colors.ENDC+f"] Solved in {timedelta(seconds = int(time.time()-start))}")
+
+    csv_write(DIR, l=["Solution BF", bf_solution])
+    csv_write(DIR, l=["Cost BF", bf_cost])
+    csv_write(DIR, l=["Time BF", bf_time])
+    csv_write(DIR, l=[])
+
     _start = time.time()
     print(now()+" ["+colors.BOLD+colors.OKBLUE+"LOG"+colors.ENDC+"] Start computing response ... ")
     start = time.time()
@@ -263,6 +270,12 @@ def tsp(n, DIR):
     print(now()+" ["+colors.BOLD+colors.OKGREEN+"END"+colors.ENDC+f"] Cost computed ")
     print("\t\t\t"+colors.BOLD+colors.HEADER+" END"+colors.ENDC)
     tme_QA = time.time() - _start
+
+    csv_write(DIR, l=["Response QA", response_QA])
+    csv_write(DIR, l=["Solution QA", solution_QA])
+    csv_write(DIR, l=["Cost QA", cost_QA])
+    csv_write(DIR, l=["Time QA", tme_QA])
+    csv_write(DIR, l=[])
 
     #HYBRID
     _start = time.time()
@@ -280,19 +293,11 @@ def tsp(n, DIR):
     print("\t\t\t"+colors.BOLD+colors.HEADER+" END"+colors.ENDC)
     tme_HY = time.time() - _start
     
-    csv_write(DIR, l=["Solution BF", bf_solution])
-    csv_write(DIR, l=["Cost BF", bf_cost])
-    csv_write(DIR, l=["Time BF", bf_time])
-    csv_write(DIR, l=[])
-    csv_write(DIR, l=["Response QA", response_QA])
-    csv_write(DIR, l=["Solution QA", solution_QA])
-    csv_write(DIR, l=["Cost QA", cost_QA])
-    csv_write(DIR, l=["Time QA", tme_QA])
-    csv_write(DIR, l=[])
     csv_write(DIR, l=["Response HY", response_HY])
     csv_write(DIR, l=["Solution HY", solution_HY])
     csv_write(DIR, l=["Cost HY", cost_HY])
     csv_write(DIR, l=["Time HY", tme_HY])
+    csv_write(DIR, l=[])
     
     return nodes_array, tsp_matrix, qubo#, response_QA, solution_QA, cost_QA, tme_QA, bf_solution, bf_cost, bf_time
 
