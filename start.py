@@ -1,5 +1,6 @@
 #!/usr/local/bin/python3
 import datetime
+import time
 from QA4QUBO import matrix, vector, solver, tsp#, solver2
 from QA4QUBO.colors import colors
 from os import listdir, mkdir, system, name
@@ -137,8 +138,10 @@ def main(nn):
     if NPP:
         print("["+colors.BOLD+colors.OKCYAN+"S"+colors.ENDC+f"] {S}")
 
-    z, time = np.atleast_2d(solver.solve(d_min = 70, eta = 0.01, i_max = 150, k = 5, lambda_zero = 3/2, n = nn if NPP or QAP else nn ** 2 , N = 10, N_max = 100, p_delta = 0.1, q = 0.2, topology = 'pegasus', Q = _Q, csv_DIR = csv_DIR, sim = False)).T[0]
-    
+    start = time.time()
+    z = np.atleast_2d(solver.solve(d_min = 70, eta = 0.01, i_max = 150, k = 5, lambda_zero = 3/2, n = nn if NPP or QAP else nn ** 2 , N = 10, N_max = 100, p_delta = 0.1, q = 0.2, topology = 'pegasus', Q = _Q, csv_DIR = csv_DIR, sim = False)).T[0]
+    conv = conv = datetime.timedelta(seconds=int(time.time() - start))
+
     min_z = solver.function_f(_Q,z).item()
     print("\t\t\t"+colors.BOLD+colors.OKGREEN+"RESULTS"+colors.ENDC+"\n")
     string = str()
@@ -179,7 +182,7 @@ def main(nn):
         string += log_write("ROUTE", route) + log_write("COST", cost)
         csv_write(DIR=_DIR+"_solution.csv", l=[])
         csv_write(DIR=_DIR+"_solution.csv", l=["Result","Route", "cost", "res", "time", "z", ])
-        csv_write(DIR=_DIR+"_solution.csv", l=["Valid" if valid else "Not valid",route, cost, res if valid else None, time, z,])
+        csv_write(DIR=_DIR+"_solution.csv", l=["Valid" if valid else "Not valid",route, cost, res if valid else None, conv, z,])
         #csv_write(DIR=_DIR+"_solution.csv", l=[])
         #csv_write(DIR=_DIR+"_solution.csv", l=[])
         #csv_write(DIR=_DIR+"_solution.csv", l=["Nodes", "Adjacency Matrix"])
