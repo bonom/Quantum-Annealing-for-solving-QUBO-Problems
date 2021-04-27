@@ -127,16 +127,17 @@ def main(nn):
         while nn <= 0 or nn > 11:
             nn = int(input("["+colors.FAIL+colors.BOLD+"Invalid n"+colors.ENDC+"] Insert n: "))
         _DIR = generate_file_tsp(nn)
+        csv_DIR = _DIR.replace("TSP","TSP_LOG") + ".csv"
+        csv_write(DIR=csv_DIR, l=["i", "f'", "f*", "p", "e", "d", "lambda", "z'", "z*"])
         nodes_array, tsp_matrix, qubo, response, solution, cl_cost, cl_time, bf_sol, bf_cost, bf_time = tsp.tsp(nn, _DIR+ "_classic.csv")
         _Q = convert_qubo_to_Q(qubo, nn**2)
-        csv_DIR = _DIR.replace("TSP","TSP_LOG") + ".csv"
     
     print("\t\t"+colors.BOLD+colors.OKGREEN+"   PROBLEM BUILDED"+colors.ENDC+"\n\n\t\t"+colors.BOLD+colors.OKGREEN+"   START ALGORITHM"+colors.ENDC+"\n")
     
     if NPP:
         print("["+colors.BOLD+colors.OKCYAN+"S"+colors.ENDC+f"] {S}")
 
-    z = np.atleast_2d(solver.solve(d_min = 70, eta = 0.01, i_max = 8, k = 1, lambda_zero = 3/2, n = nn if NPP or QAP else nn ** 2 , N = 10, N_max = 100, p_delta = 0.1, q = 0.2, topology = 'pegasus', Q = _Q, csv_DIR = csv_DIR, sim = True)).T[0]
+    z = np.atleast_2d(solver.solve(d_min = 70, eta = 0.01, i_max = 150, k = 5, lambda_zero = 3/2, n = nn if NPP or QAP else nn ** 2 , N = 10, N_max = 100, p_delta = 0.1, q = 0.2, topology = 'pegasus', Q = _Q, csv_DIR = csv_DIR, sim = False)).T[0]
     
     min_z = solver.function_f(_Q,z).item()
     print("\t\t\t"+colors.BOLD+colors.OKGREEN+"RESULTS"+colors.ENDC+"\n")

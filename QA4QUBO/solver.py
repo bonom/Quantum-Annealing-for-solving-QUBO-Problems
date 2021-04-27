@@ -210,8 +210,6 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
 
         print(now()+" ["+colors.BOLD+colors.OKGREEN+"DATA IN"+colors.ENDC+"] dmin = "+str(d_min)+" - eta = "+str(eta)+" - imax = "+str(i_max)+" - k = "+str(k)+" - lambda 0 = "+str(lambda_zero)+" - n = "+str(n) + " - N = "+str(N) + " - Nmax = "+str(N_max)+" - pdelta = "+str(p_delta)+" - q = "+str(q)+"\n")
         
-        csv_write(DIR=csv_DIR, l=["i", "f'", "f*", "p", "e", "d", "lambda", "z'", "z*"])
-
         I = np.identity(n)
         p = 1
         Theta_one, m_one = g(Q, A, np.arange(n), p, sim)

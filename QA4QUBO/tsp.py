@@ -218,10 +218,12 @@ def now():
 
 def tsp(n, DIR):
     print("\t"+colors.BOLD+colors.HEADER+"    CLASSIC TSP PROBLEM SOLVER..."+colors.ENDC)
-    
+    csv_write(DIR, l=["nodes", "response_QA", "solution_QA", "cost_QA", "response_SA", "solution_SA", "cost_SA", "tsp", "qubo"])
+       
     qubo = dict()
     print(now()+" ["+colors.BOLD+colors.OKBLUE+"LOG"+colors.ENDC+"] Creating nodes array ... ")
-    nodes_array = create_nodes_array(n)
+    #nodes_array = create_nodes_array(n)
+    nodes_array = np.array([[0.66083966, 9.36939755],[1.98485729, 7.62491491],[1.54206421, 1.18410071],[2.01555644, 3.15713817],[7.83888128, 8.77009394],[1.4779611, 4.16581664],[0.6508892, 6.31063212],[6.6267559, 5.45120931],[9.73821452, 2.20299234],[3.50140032, 5.36660266]])
     print(now()+" ["+colors.BOLD+colors.OKGREEN+"END"+colors.ENDC+"] Nodes array created")
     print(now()+" ["+colors.BOLD+colors.OKBLUE+"LOG"+colors.ENDC+"] Creating tsp matrix ... ")
     tsp_matrix = get_tsp_matrix(nodes_array)
@@ -247,7 +249,7 @@ def tsp(n, DIR):
     print(now()+" ["+colors.BOLD+colors.OKGREEN+"END"+colors.ENDC+f"] Response computed in {timedelta(seconds = int(time.time()-start))}")
     print(now()+" ["+colors.BOLD+colors.OKBLUE+"LOG"+colors.ENDC+"] Start computing solution ... ")
     start = time.time()
-    solution_QA = decode_solution(response_QA, False)
+    solution_QA = decode_solution(response_QA, True)
     print(now()+" ["+colors.BOLD+colors.OKGREEN+"END"+colors.ENDC+f"] Solution computed in {timedelta(seconds = int(time.time()-start))}")
     print(now()+" ["+colors.BOLD+colors.OKBLUE+"END"+colors.ENDC+"] Computing cost ... ")
     cost_QA = round(calculate_cost(tsp_matrix,solution_QA),2)
@@ -263,7 +265,7 @@ def tsp(n, DIR):
     print(now()+" ["+colors.BOLD+colors.OKGREEN+"END"+colors.ENDC+f"] Hybrid response computed in {timedelta(seconds = int(time.time()-start))}")
     print(now()+" ["+colors.BOLD+colors.OKBLUE+"LOG"+colors.ENDC+"] Start computing hybrid solution ... ")
     start = time.time()
-    solution_SA = decode_solution(response_SA, False)
+    solution_SA = decode_solution(response_SA, True)
     print(now()+" ["+colors.BOLD+colors.OKGREEN+"END"+colors.ENDC+f"] Hybrid olution computed in {timedelta(seconds = int(time.time()-start))}")
     print(now()+" ["+colors.BOLD+colors.OKBLUE+"END"+colors.ENDC+"] Computing hybrid cost ... ")
     cost_SA = round(calculate_cost(tsp_matrix,solution_SA),2)
@@ -271,7 +273,6 @@ def tsp(n, DIR):
     print("\t\t\t"+colors.BOLD+colors.HEADER+" END"+colors.ENDC)
     tme_SA = time.time() - _start
     
-    csv_write(DIR, l=["nodes", "response_QA", "solution_QA", "cost_QA", "response_SA", "solution_SA", "cost_SA", "tsp", "qubo"])
     csv_write(DIR, l=[nodes_array, response_QA, solution_QA, cost_QA, response_SA, solution_SA, cost_SA, tsp_matrix, qubo])
 
     return nodes_array, tsp_matrix, qubo, response_QA, solution_QA, cost_QA, tme_QA, bf_solution, bf_cost, bf_time
