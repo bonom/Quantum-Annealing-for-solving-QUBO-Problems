@@ -8,18 +8,20 @@
 #
 #
 #
-
+import itertools
 import time
 import os
 import csv
 import numpy as np
 import sys
 from datetime import datetime, timedelta
-#from QA4QUBO.colors import colors
-from colors import colors
+from QA4QUBO.colors import colors
+from QA4QUBO.script import annealer, hybrid
+#from colors import colors
 from dwave.system.samplers import DWaveSampler           
 from dwave.system.composites import EmbeddingComposite   
 import neal
+from dwave.system import LeapHybridSampler
 from random import SystemRandom
 random = SystemRandom()
 
@@ -62,9 +64,25 @@ def add_position_constraints(distance_matrix, constraint_constant, qubo_dict):
                 if t1!=t2:
                     qubo_dict[(qubit_a, qubit_b)] = 2 * constraint_constant
 
+def solve_tsp_brute_force(nodes_array):
+    number_of_nodes = len(nodes_array)
+    initial_order = range(0, number_of_nodes)
+    all_permutations = [list(x) for x in itertools.permutations(initial_order)]
+    cost_matrix = get_tsp_matrix(nodes_array)
+    best_permutation = all_permutations[0]
+    best_cost = calculate_cost(cost_matrix, all_permutations[0])
+    for permutation in all_permutations:
+        current_cost = calculate_cost(cost_matrix, permutation)
+        if current_cost < best_cost:
+            best_permutation = permutation
+            best_cost = current_cost
+    
+    return np.array(best_permutation), round(best_cost, 2)
+
 def solve_tsp(qubo_dict, k, tsp_matrix):
-    response = list(neal.SimulatedAnnealingSampler().sample_qubo(qubo_dict, num_reads=k).first.sample.values())            
-    #response = list(EmbeddingComposite(DWaveSampler()).sample_qubo(qubo_dict, chain_strength=800, num_reads=k).first.sample.values())            
+    response = annealer(qubo_dict, neal.SimulatedAnnealingSampler(), k)      
+    #response = hybrid(qubo_dict, LeapHybridSampler())
+    #response = annealer(qubo_dict, EmbeddingComposite(DWaveSampler()), k)            
     return np.array(response)
 
 def advance(iter, rnd):
@@ -86,6 +104,7 @@ def decode_solution(response, validate):
     indexes = list()
 
     if not validate:
+        solution = list()
         for i in range(n):
             for j in range(n):
                 if(response[n*i + j] == 1):
@@ -109,7 +128,7 @@ def decode_solution(response, validate):
         for i in range(n):
             if len(raw[i]) > 1:
                 for it in raw[i]:
-                    if it in keep and it == keep[-1]: #OR keep.index(it)???
+                    if it not in keep: 
                         diff.append(it)
                 
                 if len(diff) > 0:
@@ -137,11 +156,11 @@ def decode_solution(response, validate):
             indexes.clear()
 
         for it in all_:
-            if it in keep and it == keep[-1]: #OR keep.index(it)???
+            if it not in keep: 
                 diff.append(it)
-
+            
         for i in range(n):
-            if -solution[i] and len(diff) != 0:
+            if solution[i] == -1 and len(diff) != 0:
                 it = advance(iter(diff), random.random() % len(diff))
                 solution[i] = it
                 diff.remove(it)
@@ -213,6 +232,11 @@ def tsp(n, DIR):
     add_time_constraints(tsp_matrix,constraint_constant,qubo)
     add_position_constraints(tsp_matrix,constraint_constant,qubo)
     print(now()+" ["+colors.BOLD+colors.OKGREEN+"END"+colors.ENDC+"] Contraints added")
+    print(now()+" ["+colors.BOLD+colors.OKBLUE+"LOG"+colors.ENDC+"] Solving bruteforce ... ")
+    start = time.time()
+    bf_solution, bf_cost = solve_tsp_brute_force(nodes_array)
+    bf_time = time.time() - start
+    print(now()+" ["+colors.BOLD+colors.OKGREEN+"END"+colors.ENDC+f"] Solved in {timedelta(seconds = int(time.time()-start))}")
     _start = time.time()
     print(now()+" ["+colors.BOLD+colors.OKBLUE+"LOG"+colors.ENDC+"] Start computing response ... ")
     start = time.time()
@@ -220,7 +244,7 @@ def tsp(n, DIR):
     print(now()+" ["+colors.BOLD+colors.OKGREEN+"END"+colors.ENDC+f"] Response computed in {timedelta(seconds = int(time.time()-start))}")
     print(now()+" ["+colors.BOLD+colors.OKBLUE+"LOG"+colors.ENDC+"] Start computing solution ... ")
     start = time.time()
-    solution = decode_solution(response, True)
+    solution = decode_solution(response, False)
     print(now()+" ["+colors.BOLD+colors.OKGREEN+"END"+colors.ENDC+f"] Solution computed in {timedelta(seconds = int(time.time()-start))}")
     print(now()+" ["+colors.BOLD+colors.OKBLUE+"END"+colors.ENDC+"] Computing cost ... ")
     cost = round(calculate_cost(tsp_matrix,solution),2)
@@ -231,11 +255,10 @@ def tsp(n, DIR):
     csv_write(DIR, l=["nodes", "response", "solution", "cost", "tsp", "qubo"])
     csv_write(DIR, l=[nodes_array, response, solution, cost , tsp_matrix, qubo])
 
-    return nodes_array, tsp_matrix, qubo, response, solution, cost, tme
+    return nodes_array, tsp_matrix, qubo, response, solution, cost, tme, bf_solution, bf_cost, bf_time
 
 if __name__ == '__main__':
-    #decode_solution([1,0,1,0,0,1,0,1,0], True)
-
+    
     os.system('cls' if os.name == 'nt' else 'clear')
 
     try:

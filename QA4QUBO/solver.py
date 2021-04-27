@@ -2,7 +2,7 @@
 import time
 import numpy as np
 from QA4QUBO.matrix import generate_chimera, generate_pegasus
-from QA4QUBO.script import annealer
+from QA4QUBO.script import annealer, hybrid
 from dwave.system.samplers import DWaveSampler
 from dwave.system import LeapHybridSampler
 import datetime
@@ -91,15 +91,7 @@ def map_back(z, perm):
         z_ret[i] = int(z[inverted[i]])
 
     return z_ret
-
-# def printTheta(dictionary):
-#     tmp = 1
-#     for i,j in dictionary:
-#         if i == tmp:
-#             print("\n")
-#             tmp+=1
-#         print(f"({i},{j}) -> {dictionary[i,j]}",end="\t")
-        
+     
 def g(Q, A, oldperm, p, sim):
     n = len(Q)
     m = dict()
@@ -109,7 +101,6 @@ def g(Q, A, oldperm, p, sim):
     
 
     m = random_shuffle(m)
-    
     perm = fill(m, oldperm, n)
     inversed = inverse(perm, n)
     
@@ -131,16 +122,6 @@ def g(Q, A, oldperm, p, sim):
     return Theta, perm
 
 def h(vect, pr):
-    #OLD
-    # if [-1] in vect:
-    #     for i in range(n):
-    #         if make_decision(pr):
-    #             vect[i] = -(vect[i])
-    # else:
-    #     for i in range(n):
-    #         if make_decision(pr):
-    #             vect[i] = int((vect[i]+1) % 2)
-
     n = len(vect)
 
     for i in range(n):
@@ -198,8 +179,6 @@ def now():
 
 def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, Q, csv_DIR, sim):
     
-    csv_write(DIR=csv_DIR, l=["i", "f'", "f*", "p", "e", "d", "lambda", "z'", "z*"])
-    
     try:
         try:
             print(now()+" ["+colors.BOLD+colors.OKGREEN+"LOG"+colors.ENDC+"] Random seed: "+ str(random_seed)+"\n")
@@ -211,10 +190,11 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
             print(now()+" ["+colors.BOLD+colors.OKGREEN+"LOG"+colors.ENDC+"] "+colors.HEADER+"Using Pegasus Topology \n"+colors.ENDC)
             A = get_active(sampler, n)
             sampler = EmbeddingComposite(sampler)
+            csv_DIR.replace("TSP_","TSP_QA_")
         else:
             print(now()+" ["+colors.BOLD+colors.OKGREEN+"LOG"+colors.ENDC+"] "+colors.OKCYAN+"Started Algorithm in Simulating Mode"+colors.ENDC)
             sampler = neal.SimulatedAnnealingSampler()
-
+            csv_DIR.replace("TSP_","TSP_SA_")
             if(topology == 'chimera'):
                 print(now()+" ["+colors.BOLD+colors.OKGREEN+"LOG"+colors.ENDC+"] "+colors.OKCYAN+"Using Chimera Topology \n"+colors.ENDC)
                 if(n > 2048):
@@ -230,6 +210,8 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
 
         print(now()+" ["+colors.BOLD+colors.OKGREEN+"DATA IN"+colors.ENDC+"] dmin = "+str(d_min)+" - eta = "+str(eta)+" - imax = "+str(i_max)+" - k = "+str(k)+" - lambda 0 = "+str(lambda_zero)+" - n = "+str(n) + " - N = "+str(N) + " - Nmax = "+str(N_max)+" - pdelta = "+str(p_delta)+" - q = "+str(q)+"\n")
         
+        csv_write(DIR=csv_DIR, l=["i", "f'", "f*", "p", "e", "d", "lambda", "z'", "z*"])
+
         I = np.identity(n)
         p = 1
         Theta_one, m_one = g(Q, A, np.arange(n), p, sim)
@@ -238,10 +220,12 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
         print(now()+" ["+colors.BOLD+colors.OKGREEN+"ANN"+colors.ENDC+"] Working on z1...", end=' ')
         start = time.time()
         z_one = map_back(annealer(Theta_one, sampler, k), m_one)
+        #z_one = map_back(hybrid(Theta_one, sampler), m_one)
         convert_1 = datetime.timedelta(seconds=(time.time()-start))
         print("Ended in "+str(convert_1)+"\n"+now()+" ["+colors.BOLD+colors.OKGREEN+"ANN"+colors.ENDC+"] Working on z2...", end=' ')
         start = time.time()
         z_two = map_back(annealer(Theta_two, sampler, k), m_two)
+        #z_two = map_back(hybrid(Theta_two, sampler), m_two)
         convert_2 = datetime.timedelta(seconds=(time.time()-start))
         print("Ended in "+str(convert_2)+"\n")
 
@@ -273,7 +257,7 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
     i = 1
     lam = lambda_zero
     sum_time = 0
-
+    
     while True:
         print(f"---------------------------------------------------------------------------------------------------------------")
         start_time = time.time()
@@ -294,6 +278,7 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
             print(now()+" ["+colors.BOLD+colors.OKGREEN+"ANN"+colors.ENDC+"] Working on z'...", end=' ')
             start = time.time()
             z_prime = map_back(annealer(Theta_prime, sampler, k), m)
+            #z_prime = map_back(hybrid(Theta_prime, sampler), m)
             convert_z = datetime.timedelta(seconds=(time.time()-start))
             print("Ended in "+str(convert_z))
 
@@ -302,6 +287,7 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
 
             if (z_prime != z_star).any() :
                 f_prime = function_f(Q, z_prime).item()
+                
                 if (f_prime < f_star):
                     z_prime, z_star = z_star, z_prime
                     f_star = f_prime

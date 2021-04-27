@@ -15,4 +15,10 @@ def annealer(theta, sampler, k, time=False):
     if time:
         print(f"Time: {time.time()-start}")
     
-    return np.atleast_2d(list(response.first.sample.values())).T
+    return list(response.first.sample.values())
+
+def hybrid(theta, sampler):
+    response = sampler.sample_qubo(theta)
+
+    return list(response.first.sample.values())
+    

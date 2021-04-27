@@ -1,5 +1,6 @@
 #!/usr/local/bin/python3
-from QA4QUBO import matrix, vector, solver
+import datetime
+from QA4QUBO import matrix, vector, solver, tsp#, solver2
 from QA4QUBO.colors import colors
 from os import listdir, mkdir, system, name
 from os.path import isfile, join, exists
@@ -17,6 +18,9 @@ NPP = False
 
 np.set_printoptions(threshold=sys.maxsize)
 
+def log_write(tpe, var):
+    return "["+colors.BOLD+str(tpe)+colors.ENDC+"]\t"+str(var)+"\n"
+
 def getproblem():
     elements = list()
     i = 0
@@ -27,7 +31,7 @@ def getproblem():
         i += 1
     
     problem = int(input("Which problem do you want to select? "))
-    DIR = "QA4QUBO/tests/"+qap[problem]
+    DIR = "QA4QUBO/qap/"+qap[problem]
     return DIR, qap[problem]
 
 def write(dir, string):
@@ -44,124 +48,147 @@ def generate_file_npp(_n:int):
     nok = True
     i = 0
     max_range = 1000000
-    dir = "NPP_output_"+str(_n)+"_"+ str(max_range)
+    _dir = "NPP_output_"+str(_n)+"_"+ str(max_range)
     while(nok):
         try:
-            with open("outputs/"+dir+".csv", "r") as file:
+            with open("outputs/"+_dir.replace("NPP","NPP_LOG")+".csv", "r") as file:
                 pass
             max_range = int(max_range/10)
             if(max_range < 10):
                 exit("File output terminati")
-            dir = "NPP_output_"+str(_n)+"_"+ str(max_range)
+            _dir = "NPP_output_"+str(_n)+"_"+ str(max_range)
             i += 1
-        except IOError:
+        except FileNotFoundError:
             nok = False
         
-    DIR = "outputs/"+dir
+    DIR = "outputs/"+_dir
 
     return DIR, max_range
 
-def generate_file_tsp(n:int,edges:int):
+def generate_file_tsp(n:int):
     nok = True
     i = 0
-    dir = "TSP_output_"+str(n)+"_"+ str(edges)
+    _dir = "TSP_output_"+str(n)
     while(nok):
         try:
-            with open("outputs/"+dir+".csv", "r") as file:
+            with open("outputs/"+_dir.replace("TSP","TSP_LOG")+".csv", "r") as file:
                 pass
             i += 1
-            dir = "TSP_output_"+str(n)+"_"+ str(edges)+"_"+str(i)
-        except IOError:
+            _dir = "TSP_output_"+str(n)+"_"+str(i)
+        except FileNotFoundError:
             nok = False
         
-    DIR = "outputs/"+dir
+    DIR = "outputs/"+_dir
 
     return DIR
 
 def generate_file_qap(name):
     nok = True
     i = 0
-    dir = "QAP_output_"+str(name)+"_"+ str(i)
+    _dir = "QAP_output_"+str(name)
     while(nok):
         try:
-            with open("outputs/"+dir+".csv", "r") as file:
+            with open("outputs/"+_dir+".csv", "r") as file:
                 pass
             i += 1
-            dir = "QAP_output_"+str(name)+"_"+ str(i)
-        except IOError:
+            _dir = "QAP_output_"+str(name)+"_"+ str(i)
+        except FileNotFoundError:
             nok = False
         
-    DIR = "outputs/"+dir
+    DIR = "outputs/"+_dir
 
     return DIR
 
-def main(_n):    
-    print(" --------- Creating Problem ---------\n")
-    
+def convert_qubo_to_Q(qubo, n):
+    Q = np.zeros((n,n))
+    for x,y in qubo.keys():
+        Q[x][y] = qubo[x,y]
+
+    return Q
+
+def main(nn):    
+    print("\t\t"+colors.BOLD+colors.WARNING+"  BUILDING PROBLEM..."+colors.ENDC)
     if QAP:
         _dir, name = getproblem()
-        _Q, penalty, _n, y = matrix.generate_QAP_problem(_dir)
+        _Q, penalty, nn, y = matrix.generate_QAP_problem(_dir)
         name = name.replace(".txt","")
         _DIR = generate_file_qap(name)
         csv_DIR = _DIR.replace("QAP","QAP_LOG") + ".csv"
 
     elif NPP:
-        while _n <= 0:
-            _n = int(input("["+colors.FAIL+colors.BOLD+"Invalid n"+colors.ENDC+"] Insert n: "))
-        _DIR, max_range = generate_file_npp(_n)
-        S = vector.generate_S(_n, max_range)
+        while nn <= 0:
+            nn = int(input("["+colors.FAIL+colors.BOLD+"Invalid n"+colors.ENDC+"] Insert n: "))
+        _DIR, max_range = generate_file_npp(nn)
+        S = vector.generate_S(nn, max_range)
         _Q, c = matrix.generate_QUBO_problem(S)
         csv_DIR = _DIR.replace("NPP","NPP_LOG") + ".csv"
     
     else:
-        while _n <= 0 or _n > 9:
-            _n = int(input("["+colors.FAIL+colors.BOLD+"Invalid n"+colors.ENDC+"] Insert n: "))
-        G, _Q = matrix.tsp(_n)
-        len_edges = len(G.edges())
-        _DIR = generate_file_tsp(_n,len_edges)
+        while nn <= 0 or nn > 11:
+            nn = int(input("["+colors.FAIL+colors.BOLD+"Invalid n"+colors.ENDC+"] Insert n: "))
+        _DIR = generate_file_tsp(nn)
+        nodes_array, tsp_matrix, qubo, response, solution, cl_cost, cl_time, bf_sol, bf_cost, bf_time = tsp.tsp(nn, _DIR+ "_classic.csv")
+        _Q = convert_qubo_to_Q(qubo, nn**2)
         csv_DIR = _DIR.replace("TSP","TSP_LOG") + ".csv"
-
-    print(" ---------- Problem start ----------\n")
+    
+    print("\t\t"+colors.BOLD+colors.OKGREEN+"   PROBLEM BUILDED"+colors.ENDC+"\n\n\t\t"+colors.BOLD+colors.OKGREEN+"   START ALGORITHM"+colors.ENDC+"\n")
     
     if NPP:
-        print("\n S = "+str(S)+"\n")
+        print("["+colors.BOLD+colors.OKCYAN+"S"+colors.ENDC+f"] {S}")
 
-    z = np.atleast_2d(solver.solve(d_min = 70, eta = 0.01, i_max = 3, k = 1000, lambda_zero = 3/2, n = _n if QAP or NPP else _n**2, N = 10, N_max = 100, p_delta = 0.1, q = 0.2, topology = 'pegasus', Q = _Q, csv_DIR = csv_DIR, sim = False)).T[0]
+    z = np.atleast_2d(solver.solve(d_min = 70, eta = 0.01, i_max = 8, k = 1, lambda_zero = 3/2, n = nn if NPP or QAP else nn ** 2 , N = 10, N_max = 100, p_delta = 0.1, q = 0.2, topology = 'pegasus', Q = _Q, csv_DIR = csv_DIR, sim = True)).T[0]
     
     min_z = solver.function_f(_Q,z).item()
-    
-    string = "So far we found:\n- z - \n"+str(z)+"\nand has minimum = "+str(min_z)+"\n"
+    print("\t\t\t"+colors.BOLD+colors.OKGREEN+"RESULTS"+colors.ENDC+"\n")
+    string = str()
+    if nn < 16:
+        string += log_write("Z",z)
+    else:
+        string += log_write("Z","Too big to print, see "+_DIR+"_solution.csv for the complete result")
+    string += log_write("fQ",round(min_z,2))
     if NPP:
         diff2 = (c**2 + 4*min_z)
-        string += "c = "+str(c)+", c^2 = "+str(c**2)+", diff^2 = "+str(diff2)+", diff = "+str(np.sqrt(diff2))+"\n"
-        print(string)
+        string += log_write("c",c) + log_write("C",c**2) + log_write("DIFF", round(diff2,2)) + log_write("diff",np.sqrt(diff2))
         csv_write(DIR=_DIR+"_solution.csv", l=["c","c**2","diff**2","diff","S", "z", "Q"])
-        csv_write(DIR=_DIR+"_solution.csv", l=[c,c**2,diff2,np.sqrt(diff2),S,z, _Q  if _n < 5 else "too big"])
+        csv_write(DIR=_DIR+"_solution.csv", l=[c,c**2,diff2,np.sqrt(diff2),S,z, _Q  if nn < 5 else "too big"])
         
     elif QAP:
+        string += log_write("y",y) + log_write("Penalty",penalty) + log_write("Difference",round(y+min_z, 2)) #difference = y+minimum
         csv_write(DIR=_DIR+"_solution.csv", l=["problem","y","penalty","difference (y+minimum)", "z", "Q" ])
         csv_write(DIR=_DIR+"_solution.csv", l=[name,y,penalty,y+min_z,np.atleast_2d(z).T,_Q])
-        string += "y = "+str(y)+", penalty = "+str(penalty)+", difference (y+minimum) = "+str(y+min_z)+"\n"
-        print(string)
 
     else:
-        res = np.split(z,_n)
+        res = np.split(z,nn)
         valid = True
         route = list()
         for split in res:
             if np.count_nonzero(split == 1) != 1:
                 valid = False
-            route.append(str(np.where(split == 1)))
+            where = str(np.where(split == 1))
+            if str(np.where(split == 1)) in route:
+                valid = False
+            else:
+                route.append(where)
         if not valid:
-            string += "\nIl risultato non è divisibile"
+            string += "["+colors.BOLD+colors.FAIL+"ERROR"+colors.ENDC+"] Result is not valid.\n"
+            route = tsp.decode_solution(z, not valid)
+            string += "["+colors.BOLD+colors.WARNING+"VALID"+colors.ENDC+"] Validation occurred \n"
+
+        cost = round(tsp.calculate_cost(tsp_matrix, route), 2)
+        string += log_write("ROUTE", route) + log_write("COST", cost)
+        csv_write(DIR=_DIR+"_solution.csv", l=["Result","Route", "z", "cost", "res"])
+        csv_write(DIR=_DIR+"_solution.csv", l=["Valid" if valid else "Not valid",route, z,cost, res if valid else None])
+        csv_write(DIR=_DIR+"_solution.csv", l=[])
+        csv_write(DIR=_DIR+"_solution.csv", l=[])
+        csv_write(DIR=_DIR+"_solution.csv", l=["Nodes", "Adjacency Matrix"])
+        csv_write(DIR=_DIR+"_solution.csv", l=[nodes_array, tsp_matrix])
         
-        csv_write(DIR=_DIR+"_solution.csv", l=["Result","Route", "z", "res"])
-        csv_write(DIR=_DIR+"_solution.csv", l=["Valid" if valid else "Not valid",route, z, res])
-        csv_write(DIR=_DIR+"_solution.csv", l=[])
-        csv_write(DIR=_DIR+"_solution.csv", l=[])
-        csv_write(DIR=_DIR+"_solution.csv", l=["G.Nodes", "G.edges"])
-        csv_write(DIR=_DIR+"_solution.csv", l=[G.nodes(), G.edges()])
-        print(string)
+    print(string)
+    if not NPP and not QAP:
+        print("\t\t\t"+colors.BOLD+colors.OKGREEN+"   VS\n\t\t         DWAVE"+colors.ENDC+"\n")
+        print(log_write("Z",response)+log_write("ROUTE", solution)+log_write("COST", cl_cost)+log_write("TIME", datetime.timedelta(seconds=int(cl_time)))) 
+        print("\t\t\t"+colors.BOLD+colors.OKGREEN+"   VS\n\t\t       BRUTEFORCE"+colors.ENDC+"\n")
+        print(log_write("ROUTE", bf_sol)+log_write("COST", bf_cost)+log_write("TIME", datetime.timedelta(seconds=int(bf_time)))) 
 
 
 if __name__ == '__main__':

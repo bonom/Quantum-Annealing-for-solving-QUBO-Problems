@@ -139,3 +139,4 @@ output/
 QA4QUBO/hd.py
 QA4QUBO/random.py
 setup.py
+QA4QUBO/tsp.py
