@@ -243,7 +243,7 @@ def tsp(n, DIR):
     print(now()+" ["+colors.BOLD+colors.OKGREEN+"END"+colors.ENDC+"] Contraints added")
     print(now()+" ["+colors.BOLD+colors.OKBLUE+"LOG"+colors.ENDC+"] Solving bruteforce ... ")
 
-    csv_write(DIR, l=nodes_array, tsp_matrix, qubo)
+    csv_write(DIR, l=[nodes_array, tsp_matrix, qubo])
 
     start = time.time()
     bf_solution, bf_cost = solve_tsp_brute_force(nodes_array)
