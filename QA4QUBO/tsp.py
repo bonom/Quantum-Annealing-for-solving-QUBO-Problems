@@ -218,7 +218,7 @@ def now():
 
 def tsp(n, DIR):
     print("\t"+colors.BOLD+colors.HEADER+"    CLASSIC TSP PROBLEM SOLVER..."+colors.ENDC)
-    csv_write(DIR, l=["nodes", "response_QA", "solution_QA", "cost_QA", "time_QA", "response_HY", "solution_HY", "cost_HY", "time_HY", "tsp", "qubo"])
+    csv_write(DIR, l=["nodes", "tsp", "qubo"])
        
     qubo = dict()
     print(now()+" ["+colors.BOLD+colors.OKBLUE+"LOG"+colors.ENDC+"] Creating nodes array ... ")
@@ -242,6 +242,9 @@ def tsp(n, DIR):
     add_position_constraints(tsp_matrix,constraint_constant,qubo)
     print(now()+" ["+colors.BOLD+colors.OKGREEN+"END"+colors.ENDC+"] Contraints added")
     print(now()+" ["+colors.BOLD+colors.OKBLUE+"LOG"+colors.ENDC+"] Solving bruteforce ... ")
+
+    csv_write(DIR, l=nodes_array, tsp_matrix, qubo)
+
     start = time.time()
     bf_solution, bf_cost = solve_tsp_brute_force(nodes_array)
     bf_time = time.time() - start
@@ -277,9 +280,21 @@ def tsp(n, DIR):
     print("\t\t\t"+colors.BOLD+colors.HEADER+" END"+colors.ENDC)
     tme_HY = time.time() - _start
     
-    csv_write(DIR, l=[nodes_array, response_QA, solution_QA, cost_QA, tme_QA, response_HY, solution_HY, cost_HY, tme_HY, tsp_matrix, qubo])
-
-    return nodes_array, tsp_matrix, qubo, response_QA, solution_QA, cost_QA, tme_QA, bf_solution, bf_cost, bf_time
+    csv_write(DIR, l=["Solution BF", bf_solution])
+    csv_write(DIR, l=["Cost BF", bf_cost])
+    csv_write(DIR, l=["Time BF", bf_time])
+    csv_write(DIR, l=[])
+    csv_write(DIR, l=["Response QA", response_QA])
+    csv_write(DIR, l=["Solution QA", solution_QA])
+    csv_write(DIR, l=["Cost QA", cost_QA])
+    csv_write(DIR, l=["Time QA", tme_QA])
+    csv_write(DIR, l=[])
+    csv_write(DIR, l=["Response HY", response_HY])
+    csv_write(DIR, l=["Solution HY", solution_HY])
+    csv_write(DIR, l=["Cost HY", cost_HY])
+    csv_write(DIR, l=["Time HY", tme_HY])
+    
+    return nodes_array, tsp_matrix, qubo#, response_QA, solution_QA, cost_QA, tme_QA, bf_solution, bf_cost, bf_time
 
 
 if __name__ == '__main__':

@@ -129,7 +129,7 @@ def main(nn):
         _DIR = generate_file_tsp(nn)
         csv_DIR = _DIR.replace("TSP","TSP_LOG") + ".csv"
         csv_write(DIR=csv_DIR, l=["i", "f'", "f*", "p", "e", "d", "lambda", "z'", "z*"])
-        nodes_array, tsp_matrix, qubo, response, solution, cl_cost, cl_time, bf_sol, bf_cost, bf_time = tsp.tsp(nn, _DIR+ "_classic.csv")
+        nodes_array, tsp_matrix, qubo = tsp.tsp(nn, _DIR+ "_solution.csv") #, response, solution, cl_cost, cl_time, bf_sol, bf_cost, bf_time 
         _Q = convert_qubo_to_Q(qubo, nn**2)
     
     print("\t\t"+colors.BOLD+colors.OKGREEN+"   PROBLEM BUILDED"+colors.ENDC+"\n\n\t\t"+colors.BOLD+colors.OKGREEN+"   START ALGORITHM"+colors.ENDC+"\n")
@@ -137,7 +137,7 @@ def main(nn):
     if NPP:
         print("["+colors.BOLD+colors.OKCYAN+"S"+colors.ENDC+f"] {S}")
 
-    z = np.atleast_2d(solver.solve(d_min = 70, eta = 0.01, i_max = 150, k = 5, lambda_zero = 3/2, n = nn if NPP or QAP else nn ** 2 , N = 10, N_max = 100, p_delta = 0.1, q = 0.2, topology = 'pegasus', Q = _Q, csv_DIR = csv_DIR, sim = False)).T[0]
+    z, time = np.atleast_2d(solver.solve(d_min = 70, eta = 0.01, i_max = 150, k = 5, lambda_zero = 3/2, n = nn if NPP or QAP else nn ** 2 , N = 10, N_max = 100, p_delta = 0.1, q = 0.2, topology = 'pegasus', Q = _Q, csv_DIR = csv_DIR, sim = False)).T[0]
     
     min_z = solver.function_f(_Q,z).item()
     print("\t\t\t"+colors.BOLD+colors.OKGREEN+"RESULTS"+colors.ENDC+"\n")
@@ -177,19 +177,20 @@ def main(nn):
 
         cost = round(tsp.calculate_cost(tsp_matrix, route), 2)
         string += log_write("ROUTE", route) + log_write("COST", cost)
-        csv_write(DIR=_DIR+"_solution.csv", l=["Result","Route", "z", "cost", "res"])
-        csv_write(DIR=_DIR+"_solution.csv", l=["Valid" if valid else "Not valid",route, z,cost, res if valid else None])
         csv_write(DIR=_DIR+"_solution.csv", l=[])
-        csv_write(DIR=_DIR+"_solution.csv", l=[])
-        csv_write(DIR=_DIR+"_solution.csv", l=["Nodes", "Adjacency Matrix"])
-        csv_write(DIR=_DIR+"_solution.csv", l=[nodes_array, tsp_matrix])
+        csv_write(DIR=_DIR+"_solution.csv", l=["Result","Route", "cost", "res", "time", "z", ])
+        csv_write(DIR=_DIR+"_solution.csv", l=["Valid" if valid else "Not valid",route, cost, res if valid else None, time, z,])
+        #csv_write(DIR=_DIR+"_solution.csv", l=[])
+        #csv_write(DIR=_DIR+"_solution.csv", l=[])
+        #csv_write(DIR=_DIR+"_solution.csv", l=["Nodes", "Adjacency Matrix"])
+        #csv_write(DIR=_DIR+"_solution.csv", l=[nodes_array, tsp_matrix])
         
     print(string)
-    if not NPP and not QAP:
-        print("\t\t\t"+colors.BOLD+colors.OKGREEN+"   VS\n\t\t         DWAVE"+colors.ENDC+"\n")
-        print(log_write("Z",response)+log_write("ROUTE", solution)+log_write("COST", cl_cost)+log_write("TIME", datetime.timedelta(seconds=int(cl_time)))) 
-        print("\t\t\t"+colors.BOLD+colors.OKGREEN+"   VS\n\t\t       BRUTEFORCE"+colors.ENDC+"\n")
-        print(log_write("ROUTE", bf_sol)+log_write("COST", bf_cost)+log_write("TIME", datetime.timedelta(seconds=int(bf_time)))) 
+    #if not NPP and not QAP:
+    #    print("\t\t\t"+colors.BOLD+colors.OKGREEN+"   VS\n\t\t         DWAVE"+colors.ENDC+"\n")
+    #    print(log_write("Z",response)+log_write("ROUTE", solution)+log_write("COST", cl_cost)+log_write("TIME", datetime.timedelta(seconds=int(cl_time)))) 
+    #    print("\t\t\t"+colors.BOLD+colors.OKGREEN+"   VS\n\t\t       BRUTEFORCE"+colors.ENDC+"\n")
+    #    print(log_write("ROUTE", bf_sol)+log_write("COST", bf_cost)+log_write("TIME", datetime.timedelta(seconds=int(bf_time)))) 
 
 
 if __name__ == '__main__':
