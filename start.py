@@ -141,7 +141,7 @@ def main(nn):
         print("["+colors.BOLD+colors.OKCYAN+"S"+colors.ENDC+f"] {S}")
 
     start = time.time()
-    z, r_time = solver.solve(d_min = 70, eta = 0.01, i_max = 150, k = 5, lambda_zero = 3/2, n = nn if NPP or QAP else nn ** 2 , N = 10, N_max = 100, p_delta = 0.1, q = 0.2, topology = 'pegasus', Q = _Q, log_DIR = log_DIR, sim = False)
+    z, r_time = solver.solve(d_min = 70, eta = 0.01, i_max = 300, k = 5, lambda_zero = 3/2, n = nn if NPP or QAP else nn ** 2 , N = 10, N_max = 100, p_delta = 0.1, q = 0.2, topology = 'pegasus', Q = _Q, log_DIR = log_DIR, sim = False)
     conv = datetime.timedelta(seconds=int(time.time() - start))
 
     min_z = solver.function_f(_Q,z).item()
