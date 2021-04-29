@@ -1,4 +1,5 @@
 #!/usr/local/bin/python3
+import pandas as pd
 import datetime
 import time
 from QA4QUBO import matrix, vector, solver, tsp#, solver2
@@ -49,7 +50,7 @@ def generate_file_npp(_n:int):
     nok = True
     i = 0
     max_range = 1000000
-    _dir = "NPP_output_"+str(_n)+"_"+ str(max_range)
+    _dir = "NPP_"+str(_n)+"_"+ str(max_range)
     while(nok):
         try:
             with open("outputs/"+_dir.replace("NPP","NPP_LOG")+".csv", "r") as file:
@@ -57,7 +58,7 @@ def generate_file_npp(_n:int):
             max_range = int(max_range/10)
             if(max_range < 10):
                 exit("File output terminati")
-            _dir = "NPP_output_"+str(_n)+"_"+ str(max_range)
+            _dir = "NPP_"+str(_n)+"_"+ str(max_range)
             i += 1
         except FileNotFoundError:
             nok = False
@@ -68,14 +69,14 @@ def generate_file_npp(_n:int):
 
 def generate_file_tsp(n:int):
     nok = True
-    i = 0
-    _dir = "TSP_output_"+str(n)
+    i = 1
+    _dir = "TSP_"+str(n)+"_"+str(i)
     while(nok):
         try:
             with open("outputs/"+_dir.replace("TSP","TSP_LOG")+".csv", "r") as file:
                 pass
             i += 1
-            _dir = "TSP_output_"+str(n)+"_"+str(i)
+            _dir = "TSP_"+str(n)+"_"+str(i)
         except FileNotFoundError:
             nok = False
         
@@ -86,13 +87,13 @@ def generate_file_tsp(n:int):
 def generate_file_qap(name):
     nok = True
     i = 0
-    _dir = "QAP_output_"+str(name)
+    _dir = "QAP_"+str(name)
     while(nok):
         try:
             with open("outputs/"+_dir+".csv", "r") as file:
                 pass
             i += 1
-            _dir = "QAP_output_"+str(name)+"_"+ str(i)
+            _dir = "QAP_"+str(name)+"_"+ str(i)
         except FileNotFoundError:
             nok = False
         
@@ -114,7 +115,7 @@ def main(nn):
         _Q, penalty, nn, y = matrix.generate_QAP_problem(_dir)
         name = name.replace(".txt","")
         _DIR = generate_file_qap(name)
-        csv_DIR = _DIR.replace("QAP","QAP_LOG") + ".csv"
+        log_DIR = _DIR.replace("QAP","QAP_LOG") + ".csv"
 
     elif NPP:
         while nn <= 0:
@@ -122,15 +123,16 @@ def main(nn):
         _DIR, max_range = generate_file_npp(nn)
         S = vector.generate_S(nn, max_range)
         _Q, c = matrix.generate_QUBO_problem(S)
-        csv_DIR = _DIR.replace("NPP","NPP_LOG") + ".csv"
+        log_DIR = _DIR.replace("NPP","NPP_LOG") + ".csv"
     
     else:
-        while nn <= 0 or nn > 11:
+        while nn <= 0 or nn > 12:
             nn = int(input("["+colors.FAIL+colors.BOLD+"Invalid n"+colors.ENDC+"] Insert n: "))
         _DIR = generate_file_tsp(nn)
-        csv_DIR = _DIR.replace("TSP","TSP_LOG") + ".csv"
-        csv_write(DIR=csv_DIR, l=["i", "f'", "f*", "p", "e", "d", "lambda", "z'", "z*"])
-        nodes_array, tsp_matrix, qubo = tsp.tsp(nn, _DIR+ "_solution.csv") #, response, solution, cl_cost, cl_time, bf_sol, bf_cost, bf_time 
+        log_DIR = _DIR.replace("TSP","TSP_LOG") + ".csv"
+        csv_write(DIR=log_DIR, l=["i", "f'", "f*", "p", "e", "d", "lambda", "z'", "z*"])
+        df = pd.DataFrame(columns=["Solution", "Cost", "Fixed solution", "Fixed cost", "Response time", "Total time", "Response"], index=['Bruteforce', 'D-Wave', 'Hybrid', 'QALS'])
+        tsp_matrix, qubo = tsp.tsp(nn, _DIR + "_solution.csv" , _DIR[:-1]+"DATA.csv", df) #, response, solution, cl_cost, cl_time, bf_sol, bf_cost, bf_time 
         _Q = convert_qubo_to_Q(qubo, nn**2)
     
     print("\t\t"+colors.BOLD+colors.OKGREEN+"   PROBLEM BUILDED"+colors.ENDC+"\n\n\t\t"+colors.BOLD+colors.OKGREEN+"   START ALGORITHM"+colors.ENDC+"\n")
@@ -139,8 +141,8 @@ def main(nn):
         print("["+colors.BOLD+colors.OKCYAN+"S"+colors.ENDC+f"] {S}")
 
     start = time.time()
-    z = np.atleast_2d(solver.solve(d_min = 70, eta = 0.01, i_max = 150, k = 5, lambda_zero = 3/2, n = nn if NPP or QAP else nn ** 2 , N = 10, N_max = 100, p_delta = 0.1, q = 0.2, topology = 'pegasus', Q = _Q, csv_DIR = csv_DIR, sim = False)).T[0]
-    conv = conv = datetime.timedelta(seconds=int(time.time() - start))
+    z, r_time = solver.solve(d_min = 70, eta = 0.01, i_max = 150, k = 5, lambda_zero = 3/2, n = nn if NPP or QAP else nn ** 2 , N = 10, N_max = 100, p_delta = 0.1, q = 0.2, topology = 'pegasus', Q = _Q, log_DIR = log_DIR, sim = False)
+    conv = datetime.timedelta(seconds=int(time.time() - start))
 
     min_z = solver.function_f(_Q,z).item()
     print("\t\t\t"+colors.BOLD+colors.OKGREEN+"RESULTS"+colors.ENDC+"\n")
@@ -150,6 +152,8 @@ def main(nn):
     else:
         string += log_write("Z","Too big to print, see "+_DIR+"_solution.csv for the complete result")
     string += log_write("fQ",round(min_z,2))
+
+
     if NPP:
         diff2 = (c**2 + 4*min_z)
         string += log_write("c",c) + log_write("C",c**2) + log_write("DIFF", round(diff2,2)) + log_write("diff",np.sqrt(diff2))
@@ -162,39 +166,40 @@ def main(nn):
         csv_write(DIR=_DIR+"_solution.csv", l=[name,y,penalty,y+min_z,np.atleast_2d(z).T,_Q])
 
     else:
+        DW = dict()
+        DW['type'] = 'QALS'
+        DW['response'] = z
         res = np.split(z,nn)
         valid = True
-        route = list()
+        fix_sol = list()
         for split in res:
             if np.count_nonzero(split == 1) != 1:
                 valid = False
             where = str(np.where(split == 1))
-            if str(np.where(split == 1)) in route:
+            if str(np.where(split == 1)) in fix_sol:
                 valid = False
             else:
-                route.append(where)
+                fix_sol.append(where)
         if not valid:
             string += "["+colors.BOLD+colors.FAIL+"ERROR"+colors.ENDC+"] Result is not valid.\n"
-            route = tsp.decode_solution(z, not valid)
+            DW['fixsol'] = list(tsp.fix_solution(z, True))
             string += "["+colors.BOLD+colors.WARNING+"VALID"+colors.ENDC+"] Validation occurred \n"
+        else:
+            DW['fixsol'] = []
 
-        cost = round(tsp.calculate_cost(tsp_matrix, route), 2)
-        string += log_write("ROUTE", route) + log_write("COST", cost)
-        csv_write(DIR=_DIR+"_solution.csv", l=[])
-        csv_write(DIR=_DIR+"_solution.csv", l=["Result","Route", "cost", "res", "time", "z", ])
-        csv_write(DIR=_DIR+"_solution.csv", l=["Valid" if valid else "Not valid",route, cost, res if valid else None, conv, z,])
-        #csv_write(DIR=_DIR+"_solution.csv", l=[])
-        #csv_write(DIR=_DIR+"_solution.csv", l=[])
-        #csv_write(DIR=_DIR+"_solution.csv", l=["Nodes", "Adjacency Matrix"])
-        #csv_write(DIR=_DIR+"_solution.csv", l=[nodes_array, tsp_matrix])
-        
+        DW['fixcost'] = round(tsp.calculate_cost(tsp_matrix, DW['fixsol']), 2)
+        DW['sol'] = tsp.binary_state_to_points_order(z)
+        DW['cost'] = tsp.calculate_cost(tsp_matrix, DW['sol'])
+        DW['rtime'] = r_time
+        DW['ttime'] = conv
+
+        tsp.write_TSP_csv(df, DW)
+
+        #pd.DataFrame(["QALS", sol, cost, list(fix_sol), fix_cost, r_time, conv, list(z)]).to_csv(_DIR+"_solution.csv", mode='a',index=False)
+        df.to_csv(_DIR+"_solution.csv")
+        #csv_write(DIR=_DIR+"_solution.csv", l=["QALS", sol, cost, list(fix_sol), fix_cost, r_time, conv, list(z)])
+    
     print(string)
-    #if not NPP and not QAP:
-    #    print("\t\t\t"+colors.BOLD+colors.OKGREEN+"   VS\n\t\t         DWAVE"+colors.ENDC+"\n")
-    #    print(log_write("Z",response)+log_write("ROUTE", solution)+log_write("COST", cl_cost)+log_write("TIME", datetime.timedelta(seconds=int(cl_time)))) 
-    #    print("\t\t\t"+colors.BOLD+colors.OKGREEN+"   VS\n\t\t       BRUTEFORCE"+colors.ENDC+"\n")
-    #    print(log_write("ROUTE", bf_sol)+log_write("COST", bf_cost)+log_write("TIME", datetime.timedelta(seconds=int(bf_time)))) 
-
 
 if __name__ == '__main__':
     system('cls' if name == 'nt' else 'clear')

@@ -177,7 +177,7 @@ def csv_write(DIR, l):
 def now():
     return datetime.datetime.now().strftime("%H:%M:%S")
 
-def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, Q, csv_DIR, sim):
+def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, Q, log_DIR, sim):
     
     try:
         try:
@@ -190,11 +190,11 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
             print(now()+" ["+colors.BOLD+colors.OKGREEN+"LOG"+colors.ENDC+"] "+colors.HEADER+"Using Pegasus Topology \n"+colors.ENDC)
             A = get_active(sampler, n)
             sampler = EmbeddingComposite(sampler)
-            csv_DIR.replace("TSP_","TSP_QA_")
+            log_DIR.replace("TSP_","TSP_QA_")
         else:
             print(now()+" ["+colors.BOLD+colors.OKGREEN+"LOG"+colors.ENDC+"] "+colors.OKCYAN+"Started Algorithm in Simulating Mode"+colors.ENDC)
             sampler = neal.SimulatedAnnealingSampler()
-            csv_DIR.replace("TSP_","TSP_SA_")
+            log_DIR.replace("TSP_","TSP_SA_")
             if(topology == 'chimera'):
                 print(now()+" ["+colors.BOLD+colors.OKGREEN+"LOG"+colors.ENDC+"] "+colors.OKCYAN+"Using Chimera Topology \n"+colors.ENDC)
                 if(n > 2048):
@@ -310,10 +310,10 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
 
             try:
                 print(now()+" ["+colors.BOLD+colors.OKGREEN+"DATA"+colors.ENDC+f"] f_prime = {round(f_prime,2)}, f_star = {round(f_star,2)}, p = {p}, e = {e}, d = {d} and lambda = {round(lam,5)}\n"+now()+" ["+colors.BOLD+colors.OKGREEN+"DATA"+colors.ENDC+f"] Took {converted} in total")
-                csv_write(DIR=csv_DIR,l=[i, f_prime, f_star, p, e, d, lam, z_prime, z_star])
+                csv_write(DIR=log_DIR,l=[i, f_prime, f_star, p, e, d, lam, z_prime, z_star])
             except UnboundLocalError:
                 print(now()+" ["+colors.BOLD+colors.OKGREEN+"DATA"+colors.ENDC+f" No variations on f and z. p = {p}, e = {e}, d = {d} and lambda = {round(lam,5)}\n"+now()+" ["+colors.BOLD+colors.OKGREEN+"DATA"+colors.ENDC+f"] Took {converted} in total")
-                csv_write(DIR=csv_DIR,l=[i, "null", f_star, p, e, d, lam, "null", z_star])
+                csv_write(DIR=log_DIR,l=[i, "null", f_star, p, e, d, lam, "null", z_star])
             
             sum_time = sum_time + (time.time() - start_time)
 
@@ -331,13 +331,13 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
 
     converted = datetime.timedelta(seconds=sum_time)
     if i != 1:
-        conv = datetime.timedelta(seconds=(sum_time/(i-1)))
+        conv = datetime.timedelta(seconds=int(sum_time/(i-1)))
     else:
-        conv = datetime.timedelta(seconds=(sum_time))
+        conv = datetime.timedelta(seconds=int(sum_time))
     
     print(now()+" ["+colors.BOLD+colors.OKGREEN+"TIME"+colors.ENDC+"] Average time for iteration: " + str(conv)+"\n"+now()+" ["+colors.BOLD+colors.OKGREEN+"TIME"+colors.ENDC+"] Total time: "+str(converted)+"\n")
 
-    return np.atleast_2d(z_star).T
+    return np.atleast_2d(np.atleast_2d(z_star).T).T[0], conv
 
 
 
