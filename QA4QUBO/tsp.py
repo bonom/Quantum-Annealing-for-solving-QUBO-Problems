@@ -263,7 +263,7 @@ def tsp(n, DIR, DATA, df, bruteforce=True, DWave=True, Hybrid=True):
     
     qubo = dict()
     nodes_array = get_nodes(n, DATA)
-    exit()
+    
     tsp_matrix = get_tsp_matrix(nodes_array)
     constraint_constant = tsp_matrix.max()*len(tsp_matrix) 
     cost_constant = 1    
@@ -315,7 +315,6 @@ def tsp(n, DIR, DATA, df, bruteforce=True, DWave=True, Hybrid=True):
     #pd.DataFrame({zip(columns,["Sim", sol_QA, cost_QA, fixsolution_QA, fixcost_QA, time_QA, tottime_QA, response_QA])}).to_csv(DIR, mode='a',index=False)
       
     ### HYBRID
-    """
     if Hybrid:
         print(now()+" ["+colors.BOLD+colors.OKBLUE+"LOG"+colors.ENDC+"] Start computing Hybrid response ... ")
         HY = dict()
@@ -324,10 +323,10 @@ def tsp(n, DIR, DATA, df, bruteforce=True, DWave=True, Hybrid=True):
         HY['response'] = hybrid_tsp(qubo,1000,tsp_matrix)
         HY['rtime'] = timedelta(seconds = int(time.time()-start_QA)) if int(time.time()-start_QA) > 0 else time.time()-start_QA
 
-        HY['sol'] = binary_state_to_points_order(response_HY)
-        HY['cost'] = round(calculate_cost(tsp_matrix,sol_HY),2)
+        HY['sol'] = binary_state_to_points_order(HY['response'])
+        HY['cost'] = round(calculate_cost(tsp_matrix,HY['sol']),2)
 
-        HY['fixsol'] = list(fix_solution(response_HY, True))
+        HY['fixsol'] = list(fix_solution(HY['response'], True))
         HY['fixcost'] = round(calculate_cost(tsp_matrix,HY['fixsol']),2)
 
         HY['ttime'] = timedelta(seconds = int(time.time()-start_HY)) if int(time.time()-start_HY) > 0 else time.time()-start_HY
@@ -337,7 +336,7 @@ def tsp(n, DIR, DATA, df, bruteforce=True, DWave=True, Hybrid=True):
         #pd.DataFrame({zip(columns,["Hybrid", sol_HY, cost_HY, list(fixsolution_HY), fixcost_HY, time_HY, tottime_HY, list(response_HY)])}).to_csv(DIR, mode='a',index=False)
         
     print("\n\t"+colors.BOLD+colors.HEADER+"   TSP PROBLEM SOLVER END"+colors.ENDC)
-    """
+    
     
     return tsp_matrix, qubo
 

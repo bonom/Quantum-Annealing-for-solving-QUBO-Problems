@@ -135,7 +135,6 @@ rnseed.cpp
 __OLD__/
 docs/
 QAP/
-output/
 QA4QUBO/hd.py
 QA4QUBO/random.py
 setup.py
