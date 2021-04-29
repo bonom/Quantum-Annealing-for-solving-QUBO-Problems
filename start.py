@@ -16,7 +16,7 @@ qap = [f for f in listdir("QA4QUBO/qap/") if isfile(join("QA4QUBO/qap/", f))]
 #MAX = 10000 #10k
 #MAX = 1000 #mille
 QAP = False
-NPP = False
+NPP = True
 
 np.set_printoptions(threshold=sys.maxsize)
 
@@ -49,7 +49,7 @@ def csv_write(DIR, l):
 def generate_file_npp(_n:int):
     nok = True
     i = 0
-    max_range = 1000000
+    max_range = 100000
     _dir = "NPP_"+str(_n)+"_"+ str(max_range)
     while(nok):
         try:
@@ -141,7 +141,7 @@ def main(nn):
         print("["+colors.BOLD+colors.OKCYAN+"S"+colors.ENDC+f"] {S}")
 
     start = time.time()
-    z, r_time = solver.solve(d_min = 70, eta = 0.01, i_max = 300, k = 5, lambda_zero = 3/2, n = nn if NPP or QAP else nn ** 2 , N = 10, N_max = 100, p_delta = 0.1, q = 0.2, topology = 'pegasus', Q = _Q, log_DIR = log_DIR, sim = False)
+    z, r_time = solver.solve(d_min = 70, eta = 0.01, i_max = 0, k = 1, lambda_zero = 3/2, n = nn if NPP or QAP else nn ** 2 , N = 10, N_max = 100, p_delta = 0.1, q = 0.2, topology = 'pegasus', Q = _Q, log_DIR = log_DIR, sim = False)
     conv = datetime.timedelta(seconds=int(time.time() - start))
 
     min_z = solver.function_f(_Q,z).item()

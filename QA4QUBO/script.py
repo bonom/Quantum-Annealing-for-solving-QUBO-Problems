@@ -8,8 +8,9 @@ import dimod
 def annealer(theta, sampler, k, time=False):
     if time:
         start = time.time()
-    
+        
     response = sampler.sample_qubo(theta, num_reads=k) 
+    
     #inspector.show(response)
     #input("Proseguire?")
     if time:

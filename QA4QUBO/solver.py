@@ -189,7 +189,6 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
             sampler = DWaveSampler({'topology__type':topology})
             print(now()+" ["+colors.BOLD+colors.OKGREEN+"LOG"+colors.ENDC+"] "+colors.HEADER+"Using Pegasus Topology \n"+colors.ENDC)
             A = get_active(sampler, n)
-            sampler = EmbeddingComposite(sampler)
             log_DIR.replace("TSP_","TSP_QA_")
         else:
             print(now()+" ["+colors.BOLD+colors.OKGREEN+"LOG"+colors.ENDC+"] "+colors.OKCYAN+"Started Algorithm in Simulating Mode"+colors.ENDC)
