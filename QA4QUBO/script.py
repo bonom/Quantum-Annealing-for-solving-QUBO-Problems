@@ -11,8 +11,6 @@ def annealer(theta, sampler, k, time=False):
         
     response = sampler.sample_qubo(theta, num_reads=k) 
     
-    #inspector.show(response)
-    #input("Proseguire?")
     if time:
         print(f"Time: {time.time()-start}")
     

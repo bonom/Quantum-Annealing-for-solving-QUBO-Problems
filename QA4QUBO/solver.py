@@ -15,12 +15,6 @@ from dwave.system.composites.embedding import EmbeddingComposite
 random = SystemRandom()
 np.set_printoptions(linewidth=np.inf,threshold=sys.maxsize)
 
-################################################# USE FOR TESTS MADE
-#import sys                                      #
-#import random                                   #
-#random_seed = random.randint(2**60,2**64)       #
-#random.seed(random_seed)                        #
-#################################################
 
 def function_f(Q, x):
     return np.matmul(np.matmul(x, Q), np.atleast_2d(x).T)
@@ -180,10 +174,6 @@ def now():
 def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, Q, log_DIR, sim):
     
     try:
-        try:
-            print(now()+" ["+colors.BOLD+colors.OKGREEN+"LOG"+colors.ENDC+"] Random seed: "+ str(random_seed)+"\n")
-        except:
-            pass
         if (not sim):
             print(now()+" ["+colors.BOLD+colors.OKGREEN+"LOG"+colors.ENDC+"] "+colors.HEADER+"Started Algorithm in Quantum Mode"+colors.ENDC)
             sampler = DWaveSampler({'topology__type':topology})
@@ -217,12 +207,10 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
         print(now()+" ["+colors.BOLD+colors.OKGREEN+"ANN"+colors.ENDC+"] Working on z1...", end=' ')
         start = time.time()
         z_one = map_back(annealer(Theta_one, sampler, k), m_one)
-        #z_one = map_back(hybrid(Theta_one, sampler), m_one)
         convert_1 = datetime.timedelta(seconds=(time.time()-start))
         print("Ended in "+str(convert_1)+"\n"+now()+" ["+colors.BOLD+colors.OKGREEN+"ANN"+colors.ENDC+"] Working on z2...", end=' ')
         start = time.time()
         z_two = map_back(annealer(Theta_two, sampler, k), m_two)
-        #z_two = map_back(hybrid(Theta_two, sampler), m_two)
         convert_2 = datetime.timedelta(seconds=(time.time()-start))
         print("Ended in "+str(convert_2)+"\n")
 
@@ -244,7 +232,7 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
             S = (np.outer(z_prime, z_prime) - I) + np.diagflat(z_prime)
         else:
             S = np.zeros((n,n))
-            #S = [[0 for i in range(n)] for j in range(n)] #Old
+            
 
     except KeyboardInterrupt:
         exit("\n\n["+colors.BOLD+colors.OKGREEN+"KeyboardInterrupt"+colors.ENDC+"] Closing program...")
@@ -261,8 +249,10 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
         if sum_time:
             string = str(datetime.timedelta(seconds=((sum_time/i) * (i_max - i))))
         else:
-            string = " not yet available"
-        print(now()+" ["+colors.BOLD+colors.OKGREEN+"PRG"+colors.ENDC+f"] Cycle {i}/{i_max} -- {round((((i-1)/i_max)*100), 2)}% -- ETA {string}")
+            string = "Not yet available"
+        
+        print(now()+" ["+colors.BOLD+colors.OKGREEN+"PRG"+colors.ENDC+f"] Cycle {i}/{i_max} -- {round((((i-1)/i_max)*100), 2)}% -- ETA {string}") 
+        
 
         try:
             Q_prime = np.add(Q, (np.multiply(lam, S)))
@@ -275,7 +265,6 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
             print(now()+" ["+colors.BOLD+colors.OKGREEN+"ANN"+colors.ENDC+"] Working on z'...", end=' ')
             start = time.time()
             z_prime = map_back(annealer(Theta_prime, sampler, k), m)
-            #z_prime = map_back(hybrid(Theta_prime, sampler), m)
             convert_z = datetime.timedelta(seconds=(time.time()-start))
             print("Ended in "+str(convert_z))
 
@@ -304,7 +293,7 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
             else:
                 e = e + 1
 
-            # debug print
+            
             converted = datetime.timedelta(seconds=(time.time()-start_time))
 
             try:
@@ -338,56 +327,3 @@ def solve(d_min, eta, i_max, k, lambda_zero, n, N, N_max, p_delta, q, topology, 
 
     return np.atleast_2d(np.atleast_2d(z_star).T).T[0], conv
 
-
-
-""" #Old functions
-
-def update(vector):
-    dim = len(vector)
-    i = 0
-    while(i < dim and vector[i] == 1):
-        vector[i] = -1
-        i += 1
-    if(i < dim):
-        vector[i] = 1
-
-
-def minimization(matrix):
-    n = len(matrix)
-    matrix = sparse.csr_matrix(matrix)
-    rows, cols = matrix.nonzero()
-    values = matrix.data
-    N = 2**n
-    vector = [-1 for i in range(n)]
-
-    mat = list(zip(rows, cols, values))
-    minimum = E(mat, vector)
-    min_vector = vector.copy()
-
-    for i in range(N):
-        update(vector)
-        e = E(mat, vector)
-        if(e < minimum):
-            min_vector = vector.copy()
-            minimum = e
-
-    return np.atleast_2d(min_vector).T
-
-
-def E(matrix, vector):
-    e = 0
-    for row, col, val in matrix:
-        if row == col:
-            e += val * vector[row]
-        else:
-            e += val * vector[row] * vector[col]
-    return e
-
-#there is new p swap
-def sim_ann(p, f_prime, f_star):
-    if np.log(p) != 0:
-        T = -(1/(np.log(p)))
-        return np.exp(-(f_prime - f_star)/T)
-    return 0
-
-"""

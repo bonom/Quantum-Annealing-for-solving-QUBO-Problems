@@ -2,7 +2,7 @@
 import pandas as pd
 import datetime
 import time
-from QA4QUBO import matrix, vector, solver, tsp#, solver2
+from QA4QUBO import matrix, vector, solver, tsp
 from QA4QUBO.colors import colors
 from os import listdir, mkdir, system, name
 from os.path import isfile, join, exists
@@ -10,13 +10,6 @@ import sys
 import numpy as np
 import csv
 qap = [f for f in listdir("QA4QUBO/qap/") if isfile(join("QA4QUBO/qap/", f))]
-#MAX = 1000000000 #1 miliardo
-#MAX = 1000000 #1milione
-#MAX = 100000 #100k
-#MAX = 10000 #10k
-#MAX = 1000 #mille
-QAP = False
-NPP = True
 
 np.set_printoptions(threshold=sys.maxsize)
 
@@ -110,6 +103,23 @@ def convert_qubo_to_Q(qubo, n):
 
 def main(nn):    
     print("\t\t"+colors.BOLD+colors.WARNING+"  BUILDING PROBLEM..."+colors.ENDC)
+    pr = input(colors.OKCYAN+"Which problem would you like to run? (NPP, QAP, TSP)  "+colors.ENDC)
+    if pr == "NPP":
+        NPP = True
+        QAP = False
+        TSP = False
+    elif pr == "QAP":
+        NPP = False
+        QAP = True
+        TSP = False
+    elif pr == "TSP":
+        NPP = False
+        QAP = False
+        TSP = True
+    else:
+        print("["+colors.FAIL+"ERROR"+colors.ENDC+"] string "+colors.BOLD+pr+colors.ENDC+" is not valid, exiting...")
+        exit(2)
+
     if QAP:
         _dir, name = getproblem()
         _Q, penalty, nn, y = matrix.generate_QAP_problem(_dir)
@@ -132,7 +142,7 @@ def main(nn):
         log_DIR = _DIR.replace("TSP","TSP_LOG") + ".csv"
         csv_write(DIR=log_DIR, l=["i", "f'", "f*", "p", "e", "d", "lambda", "z'", "z*"])
         df = pd.DataFrame(columns=["Solution", "Cost", "Fixed solution", "Fixed cost", "Response time", "Total time", "Response"], index=['Bruteforce', 'D-Wave', 'Hybrid', 'QALS'])
-        tsp_matrix, qubo = tsp.tsp(nn, _DIR + "_solution.csv" , _DIR[:-1]+"DATA.csv", df) #, response, solution, cl_cost, cl_time, bf_sol, bf_cost, bf_time 
+        tsp_matrix, qubo = tsp.tsp(nn, _DIR + "_solution.csv" , _DIR[:-1]+"DATA.csv", df) 
         _Q = convert_qubo_to_Q(qubo, nn**2)
     
     print("\t\t"+colors.BOLD+colors.OKGREEN+"   PROBLEM BUILDED"+colors.ENDC+"\n\n\t\t"+colors.BOLD+colors.OKGREEN+"   START ALGORITHM"+colors.ENDC+"\n")
@@ -141,7 +151,7 @@ def main(nn):
         print("["+colors.BOLD+colors.OKCYAN+"S"+colors.ENDC+f"] {S}")
 
     start = time.time()
-    z, r_time = solver.solve(d_min = 70, eta = 0.01, i_max = 0, k = 1, lambda_zero = 3/2, n = nn if NPP or QAP else nn ** 2 , N = 10, N_max = 100, p_delta = 0.1, q = 0.2, topology = 'pegasus', Q = _Q, log_DIR = log_DIR, sim = False)
+    z, r_time = solver.solve(d_min = 70, eta = 0.01, i_max = 10, k = 1, lambda_zero = 3/2, n = nn if NPP or QAP else nn ** 2 , N = 10, N_max = 100, p_delta = 0.1, q = 0.2, topology = 'pegasus', Q = _Q, log_DIR = log_DIR, sim = False)
     conv = datetime.timedelta(seconds=int(time.time() - start))
 
     min_z = solver.function_f(_Q,z).item()
@@ -161,7 +171,7 @@ def main(nn):
         csv_write(DIR=_DIR+"_solution.csv", l=[c,c**2,diff2,np.sqrt(diff2),S,z, _Q  if nn < 5 else "too big"])
         
     elif QAP:
-        string += log_write("y",y) + log_write("Penalty",penalty) + log_write("Difference",round(y+min_z, 2)) #difference = y+minimum
+        string += log_write("y",y) + log_write("Penalty",penalty) + log_write("Difference",round(y+min_z, 2)) 
         csv_write(DIR=_DIR+"_solution.csv", l=["problem","y","penalty","difference (y+minimum)", "z", "Q" ])
         csv_write(DIR=_DIR+"_solution.csv", l=[name,y,penalty,y+min_z,np.atleast_2d(z).T,_Q])
 
@@ -195,9 +205,8 @@ def main(nn):
 
         tsp.write_TSP_csv(df, DW)
 
-        #pd.DataFrame(["QALS", sol, cost, list(fix_sol), fix_cost, r_time, conv, list(z)]).to_csv(_DIR+"_solution.csv", mode='a',index=False)
         df.to_csv(_DIR+"_solution.csv")
-        #csv_write(DIR=_DIR+"_solution.csv", l=["QALS", sol, cost, list(fix_sol), fix_cost, r_time, conv, list(z)])
+        
     
     print(string)
 
